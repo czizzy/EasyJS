@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Easy Unit Test</title>
+    
+    <!-- Mocha -->
+    <link rel="stylesheet" href="mocha.css" />
+    <script src="mocha.js"></script>
+    <script>mocha.setup('bdd');</script>
+    
+    <!-- Chai -->
+    <script src="chai.js"></script>
+    <script>var should = chai.Should();</script>
+
+</head>
+<body>
+    <div id="mocha"></div>
+    
+    <ruby id="test" class="outer-class">
+      <ruby id="inner" class="inner-class"></ruby>
+      <ruby class="inner-class"><i>1</i></ruby>
+    </ruby>
+    <ruby id="test-2" class="outer-class">
+      <ruby id="inner-2" class="inner-class"><i>2</i></ruby>
+      <ruby class="inner-class"></ruby>
+    </ruby>
+    <input id="checkbox" checked="checked" type="text" class="checkbox"/>
+    <script src="../easy.js"></script>
+    <script src="test.js"></script>
+    <script>
+        setupTest();
+        mocha.run();
+    </script>
+</body>
+</html>
