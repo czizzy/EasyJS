@@ -191,4 +191,18 @@ window.setupTest = function(){
             });
         });
     });
+
+    describe('AJAX', function(){
+        describe('param', function(){
+            it('shoud return correct serialized data', function(){
+                $.param({a: {
+                    one: 1,
+                    two: 2,
+                    three: 3
+                }, b: [1,2,3]}).should.be.equal('a=%5Bobject+Object%5D&b=1&b=2&b=3');
+                $.param({ ids: [1,2,3] }).should.be.equal('ids=1&ids=2&ids=3');
+                $.param({ foo: 'bar', nested: { will: 'not be ignored' }}).should.be.equal('foo=bar&nested=%5Bobject+Object%5D');
+            });
+        });
+    });
 };
