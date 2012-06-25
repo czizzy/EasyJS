@@ -3,9 +3,11 @@
     var Easy = (function(){
         var _$ = window.$,
             Easy = function(selector, context){
+                if(_isFunction(selector)) return $(document).ready(selector);
                 return new Easy.fn.init(selector, context);
             },
 
+            origToString = Object.prototype.toString,
             origSlice = Array.prototype.slice,
             origFilter = Array.prototype.filter,
 
@@ -13,6 +15,7 @@
             rclass = /^\.([\w-]+)$/,
             rtag = /^([\w-]+)$/,
             rspace = /\s+/,
+            rready = /interactive|complete/,
 	        propFix = {
 		        tabindex: "tabIndex",
 		        readonly: "readOnly",
@@ -34,6 +37,10 @@
 
             _isObject = function(value) {
                 return value === Object(value);
+            },
+
+            _isFunction = function(value) {
+                return origToString.call(value) === '[object Function]';
             },
 
             _merge = function(first, second) {
@@ -353,6 +360,12 @@
             },
 
             // Miscellaneous
+            ready: function(fn){      // TODO
+                if(rready.test(document.readyState)) fn();
+                else document.addEventListener('DOMContentLoaded', fn, false);
+                return this;
+            },
+
             add: function(selector, context) {
                 return _merge(this, this.constructor(selector, context));
             },
@@ -379,6 +392,10 @@
         Easy.fn.init.prototype = Easy.fn;
 
         var extend = Easy.extend = Easy.fn.extend = function(target, source) {
+            if(source === undefined) {
+                source = target;
+                target = this;
+            }
             for(var key in source){
                 if(source.hasOwnProperty(key)){
                     target[key] = source[key];
@@ -387,12 +404,20 @@
             return target;
         };
 
-        extend(Easy, {
+        Easy.extend({
             isEasy: function(obj){
                 return obj instanceof Easy;
             },
 
             isObject: _isObject,
+            isFunction: _isFunction,
+
+            default: function(target, src) {
+                for(var key in src){
+                    if(!(key in target)) target[key] = src[key];
+                }
+                return target;
+            },
 
             merge: _merge,
 
@@ -402,5 +427,5 @@
         return Easy;
     })();
 
-    window.$ = Easy;
+    window.$ = window.Easy = Easy;
 })(window);
