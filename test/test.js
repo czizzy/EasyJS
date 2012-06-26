@@ -161,6 +161,8 @@ window.setupTest = function(){
         describe('attr', function(){
             it('shoud get and set attribute', function(){
                 $('#mocha').attr('abc','a').attr('abc').should.be.equal('a');
+                $('#mocha').attr({'abc':'b', 'bcd':'c'}).attr('abc').should.be.equal('b');
+                $('#mocha').attr('bcd').should.be.equal('c');
                 $('#checkbox').attr('checked').should.be.equal('checked');
                 $('#checkbox').attr('class').should.be.equal('checkbox');
             });

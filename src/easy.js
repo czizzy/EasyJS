@@ -323,21 +323,34 @@
                 return false;
             },
 
-            attr: function(name, value) {
-                if(typeof name == 'string' && value === undefined) {
-                    return (this.length && this[0].nodeType === 1)?this[0].getAttribute(name):undefined;
-                } else {
-                    this.each(function(element){
-                        if(this.nodeType === 1) {
-                            if(_isObject(name)){
-                                for(var key in name) element.setAttribute(key, name[key]);
-                            } else {
-                                element.setAttribute(name, value);
-                            }
-                        }
-                    });
-                    return this;
+            // an interface to set and get values of an Easy object
+            access: function(fn, key, value) {
+                var chainable = true, result;
+                // get
+                if(value === undefined && typeof key === 'string'){
+                    chainable = false;
+                    this.length && this[0].nodeType === 1 && (result = fn.call(this[0], this[0], key));
+                } else {  // set
+                    if(_isObject(key)) {
+                        for(var i in key) this.access(fn, i, key[i]);
+                    } else {
+                        this.each(function(element) {
+                            fn.call(element, element, key, value);
+                        });
+                    }
                 }
+                return chainable?this:result;
+            },
+
+            attr: function(name, value) {
+                return this.access(function(element, k, v) {
+                    if(v === undefined) {
+                        return element.getAttribute(k);
+                    } else {
+                        element.setAttribute(k, v);
+                        return element;
+                    }
+                },name, value);
             },
 
             removeAttr: function(name) {
@@ -352,30 +365,40 @@
             prop: function(name, value) {
                 name = propFix[name] || name;
 
-                if(value === undefined){
-                    return (this.length && this[0].nodeType === 1) ? this[0][name] : undefined;
-                } else {
-                    this.each(function(element) {
-                        element[name] = value;
-                    });
-                    return this;
-                }
+                return this.access(function(element, k, v){
+                    if(v === undefined) {
+                        return element[k];
+                    } else {
+                        element[k] = v;
+                        return element;
+                    }
+                }, name, value);
             },
 
-            data: function(name, value) {            // TODO
+            data: function(name, value) {            // TODO: optimize dataset
                 return this.attr('data-' + _dasherize(name), value);
             },
 
             text: function(value) {
-                return value === undefined ?
-                    this.length > 0 ? this[0].textContent : null
-                : this.each(function(ele){ ele.textContent = value; });
+                return this.access(function(element, k, v){
+                    if(value === undefined){
+                        return element[k];
+                    } else {
+                        element[k] = v;
+                        return element;
+                    }
+                }, 'textContent', value);
             },
 
             html: function(value) {
-                return value === undefined ?
-                    this.length > 0 ? this[0].innerHTML : null
-                : this.each(function(ele){ ele.innerHTML = value; });
+                return this.access(function(element, k, v){
+                    if(value === undefined){
+                        return element[k];
+                    } else {
+                        element[k] = v;
+                        return element;
+                    }
+                }, 'innerHTML', value);
             },
 
             css: function(name, value) {  // TODO: name as object
