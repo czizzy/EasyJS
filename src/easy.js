@@ -16,24 +16,25 @@
             rtag = /^([\w-]+)$/,
             rspace = /\s+/,
             rready = /interactive|complete/,
-	        propFix = {
-		        tabindex: "tabIndex",
-		        readonly: "readOnly",
-		        "for": "htmlFor",
-		        "class": "className",
-		        maxlength: "maxLength",
-		        cellspacing: "cellSpacing",
-		        cellpadding: "cellPadding",
-		        rowspan: "rowSpan",
-		        colspan: "colSpan",
-		        usemap: "useMap",
-		        frameborder: "frameBorder",
-		        contenteditable: "contentEditable"
-	        },
+            propFix = {
+                tabindex: "tabIndex",
+                readonly: "readOnly",
+                "for": "htmlFor",
+                "class": "className",
+                maxlength: "maxLength",
+                cellspacing: "cellSpacing",
+                cellpadding: "cellPadding",
+                rowspan: "rowSpan",
+                colspan: "colSpan",
+                usemap: "useMap",
+                frameborder: "frameBorder",
+                contenteditable: "contentEditable"
+            },
 
             // optimize options
             hasClassList = false,
             classCache = {},
+            displayCache = {},
 
             _isObject = function(value) {
                 return value === Object(value);
@@ -88,13 +89,31 @@
 
             _dasherize = function(name) {
                 return name.replace(/([A-Z]+)/g, '-$1').toLowerCase();
+            },
+
+            _camelize = function(name) {
+                return name.toLowerCase().replace(/-(\w)/g, function(match, letter){
+                    return letter.toUpperCase();
+                });
+            },
+
+            _getDefaultDisplay = function(nodeName) {
+                var element, display;
+                if(!displayCache[nodeName]){
+                    element = document.createElement(nodeName);
+                    document.body.appendChild(element);
+                    display = window.getComputedStyle(element).getPropertyValue('display');
+                    displayCache[nodeName] = (display === 'none') ? 'block' : display;
+                    element.parentNode.removeChild(element);
+                }
+                return displayCache[nodeName];
             };
 
         Easy.prototype = Easy.fn = {
             constructor: Easy,
 
             length: 0,
-            
+
             init: function(selector, context) {
                 var dom, match;
                 if(!selector) return this;
@@ -110,7 +129,7 @@
                     this.length = 1;
                     return this;
                 }
-                
+
                 if(typeof selector === "string") {
                     selector = selector.trim();
                     if(match = selector.match(rid)){
@@ -155,7 +174,7 @@
 
             children: function(selector) {
                 var result = this.constructor();;
-                
+
                 this.each(function(element, index){
                     _merge(result, _matches(element.children, selector));
                 });
@@ -165,7 +184,7 @@
 
             parent: function(selector) {
                 var result = this.constructor();;
-                
+
                 this.each(function(element, index){
                     _merge(result, _matches(element.parentNode, selector));
                 });
@@ -175,7 +194,7 @@
 
             parents: function(selector) {
                 var result = this.constructor(), ancestors = [];
-                
+
                 this.each(function(element, index){
                     var node = element;
                     while((node = node.parentNode) && node !== document) {
@@ -287,7 +306,7 @@
                     } else {
                         for(var i = 0, l = classNames.length; i < l; i++) {
                             this.hasClass(classNames[i])?this.removeClass(classNames[i]):this.addClass(classNames[i]);
-                        }                        
+                        }
                     }
                 }
                 return this;
@@ -332,7 +351,7 @@
 
             prop: function(name, value) {
                 name = propFix[name] || name;
-                
+
                 if(value === undefined){
                     return (this.length && this[0].nodeType === 1) ? this[0][name] : undefined;
                 } else {
@@ -357,6 +376,31 @@
                 return value === undefined ?
                     this.length > 0 ? this[0].innerHTML : null
                 : this.each(function(ele){ ele.innerHTML = value; });
+            },
+
+            css: function(name, value) {  // TODO: name as object
+                var css = '';
+                if(value === undefined && typeof name === 'string'){
+                    return this.length === 0 ? undefined: (this[0].style[_camelize(name)] || window.getComputedStyle(this[0]).getPropertyValue(name));
+                } else {
+                    return this.each(function(element){
+                        if(value === '') {
+                            element.style.removeProperty(_dasherize(name));
+                        } else {
+                            element.style.cssText += (';' + _dasherize(name) + ':' + value + ';');
+                        }
+                    });
+                }
+            },
+
+            show: function() {
+                return this.each(function(element){
+                    element.style.display = _getDefaultDisplay(this.nodeName);
+                });
+            },
+
+            hide: function() {
+                return this.css('display', 'none');
             },
 
             // Miscellaneous
@@ -423,8 +467,32 @@
             },
 
             merge: _merge,
+            each: _each,
 
-            each: _each
+            escape: function(string) {
+                return (''+string)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#x27;')
+                    .replace(/\//g,'&#x2F;');
+            },
+
+            template: function(template) {
+                var content = /<%=([\s\S]+?)%>/g, escaper = /<%-([\s\S]+?)%>/g, coder = /<%([\s\S]+?)%>/g, spaceRex = /(\r|\n|\t)/g;
+                var source = "var __p='';__p+='" + template.replace(spaceRex, '')
+                        .replace(content, "'+$1+'")
+                        .replace(escaper, function(match, str) {
+                            return "'+$.escape(" + str + ")+'";
+                        })
+                        .replace(coder, function(match, code) {
+                            return "';"+code+"__p+='";
+                        }) + "';";
+                source = 'with(obj||{}){'+source+'} return __p;';
+                return new Function('obj', source);
+            }
+
         });
 
         return Easy;
