@@ -132,6 +132,7 @@
 
                 if(typeof selector === "string") {
                     selector = selector.trim();
+                    this.selector = selector;
                     if(match = selector.match(rid)){
                         _merge(this, document.getElementById(match[1]));
                         return this;
