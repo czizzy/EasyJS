@@ -49,13 +49,14 @@
                     cachedLength = first.length,
                     j = 0;
                 if(!second) return;
-                if(typeof second.length === 'number'){
+                if(second.nodeType){
+                    first[i++] = second;
+                } else if(typeof second.length === 'number') {
                     for(var l = second.length; j < l; j++){
                         first[i++] = second[j];
                     }
-                } else if(second.nodeType){
-                    first[i++] = second;
                 }
+
                 first.length = i;
 
                 // make the results unique
@@ -73,10 +74,10 @@
             _matches = function(target, selector) {
                 if(!selector || (typeof selector !== 'string')) return target;
                 selector = selector.trim();
-                return target.nodeType === 1 ? target.webkitMatchesSelector(selector) ? target : null
-                : origFilter.call(target, function(item) {
+                return target.nodeType === 1 ? (target.webkitMatchesSelector(selector) ? target : null)
+                : (typeof target.length === 'number'? origFilter.call(target, function(item) {
                     return item.nodeType === 1 && item.webkitMatchesSelector(selector.trim());
-                });
+                }) : null);
             },
 
             _each = function(target, callback) {
@@ -207,6 +208,19 @@
                 _merge(result, _matches(ancestors, selector));
 
                 return result;
+            },
+
+            closest: function(selector, context) {
+                var node = this[0];
+
+                while(node && !_matches(node, selector)){
+                    if(node !== document && node !== context) {
+                        node = node.parentNode;
+                    } else {
+                        node = null;
+                    }
+                }
+                return this.constructor(node);
             },
 
             prev: function(selector) {
@@ -340,7 +354,7 @@
                         });
                     }
                 }
-                return chainable?this:result;
+                return chainable ? this : result;
             },
 
             attr: function(name, value) {
@@ -400,6 +414,17 @@
                         return element;
                     }
                 }, 'innerHTML', value);
+            },
+
+            val: function(value) {
+                return this.access(function(element, k, v){
+                    if(value === undefined){
+                        return element.multiple ? Easy(origFilter.call(element, function(e){ return e.selected; })).pluck(k) : element[k];
+                    } else {
+                        element[k] = v;
+                        return element;
+                    }
+                }, 'value', value);
             },
 
             css: function(name, value) {  // TODO: name as object

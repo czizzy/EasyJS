@@ -96,6 +96,19 @@ window.setupTest = function(){
             });
         });
 
+        describe('closest', function(){
+            it('shoud get closest itself without selector', function(){
+                $('.inner-class').closest()[0].id.should.be.equal('inner');
+            });
+            it('shoud get the matched closest parent with selector', function(){
+                $('.inner-class').closest('ruby')[0].id.should.be.equal('inner');
+                $('.inner-class').closest('.outer-class')[0].id.should.be.equal('test');
+                $('.inner-class').closest('.non-exist').should.be.length(0);
+                $('.inner-class').closest('body').should.be.length(1);
+                $('.inner-class').closest('body', document.getElementById('test')).should.be.length(0);
+            });
+        });
+
         describe('prev and next', function(){
             it('shoud get all next(prev) immediate siblings without selector', function(){
                 $('#test-2').prev().should.be.length(1);
@@ -192,6 +205,13 @@ window.setupTest = function(){
                 $('#inner-2').html('<b>easyjs</b>').html().should.be.equal('<b>easyjs</b>');
             });
         });
+        describe('val', function(){
+            it('shoud get and set value', function(){
+                $('#checkbox').val(0).val().should.be.equal('0');
+                $('#select').val().toString().should.be.equal('b,c');
+            });
+        });
+
     });
 
     describe('AJAX', function(){
@@ -204,6 +224,19 @@ window.setupTest = function(){
                 }, b: [1,2,3]}).should.be.equal('a=%5Bobject+Object%5D&b=1&b=2&b=3');
                 $.param({ ids: [1,2,3] }).should.be.equal('ids=1&ids=2&ids=3');
                 $.param({ foo: 'bar', nested: { will: 'not be ignored' }}).should.be.equal('foo=bar&nested=%5Bobject+Object%5D');
+            });
+        });
+    });
+
+    describe('Event', function(){
+        describe('bind(unbind)', function(){
+            it('should bind the correct event on the elements', function(done) {
+                $('#checkbox').click(function(e){
+                    this.value = (+this.value)+1;
+                    e.type.should.be.equal('click');
+                    done();
+                });
+                $('#checkbox').trigger('click');
             });
         });
     });
