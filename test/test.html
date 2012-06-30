@@ -6,7 +6,14 @@
     <!-- Mocha -->
     <link rel="stylesheet" href="mocha.css" />
     <script src="mocha.js"></script>
-    <script>mocha.setup('bdd');</script>
+    <script>
+      mocha.setup({
+        ui: 'bdd',
+        globals: [],
+        timeout: 1500,
+        ignoreLeaks: true
+      });
+    </script>
     
     <!-- Chai -->
     <script src="chai.js"></script>

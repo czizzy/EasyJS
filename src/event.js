@@ -1,3 +1,4 @@
+'use strict';
 (function($) {
     var handlers = {}, _eid = 1, specialEvents = {};
     specialEvents.click = specialEvents.mousedown = specialEvents.mouseup = specialEvents.mousemove = 'MouseEvents';

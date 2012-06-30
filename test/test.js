@@ -211,7 +211,14 @@ window.setupTest = function(){
                 $('#select').val().toString().should.be.equal('b,c');
             });
         });
-
+        describe('css', function(){
+            it('shoud get and set css property', function(){
+                $('#inner').css('display').should.be.equal('inline');
+                $('#inner').css('display', 'block').css('display').should.be.equal('block');
+                $('#inner').css('display', '').css('display').should.be.equal('inline');
+                $('#inner').css({'display': 'block', 'font-size': '12'}).css('font-size').should.be.equal('12px');
+            });
+        });
     });
 
     describe('AJAX', function(){
@@ -224,6 +231,83 @@ window.setupTest = function(){
                 }, b: [1,2,3]}).should.be.equal('a=%5Bobject+Object%5D&b=1&b=2&b=3');
                 $.param({ ids: [1,2,3] }).should.be.equal('ids=1&ids=2&ids=3');
                 $.param({ foo: 'bar', nested: { will: 'not be ignored' }}).should.be.equal('foo=bar&nested=%5Bobject+Object%5D');
+            });
+        });
+        describe('ajax', function(){
+            it('shoud send xhr and reveive correct value with get', function(done){
+                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
+                    success: function(res){
+                        res.guid.should.be.equal('09CDE73AE4F51084');
+                        done();
+                    }
+                });
+            });
+            it('shoud send xhr and reveive correct value with get', function(done){
+                $.ajax('http://api.jiepang.com/locations/show', { 
+                    data: {guid: '09CDE73AE4F51084', apiver: 5},
+                    success: function(res){
+                        res.guid.should.be.equal('09CDE73AE4F51084');
+                        done();
+                    }
+                });
+            });
+            it('shoud send xhr and reveive correct value with post', function(done){
+                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
+                    type: 'post',
+                    success: function(res){
+                        res.guid.should.be.equal('09CDE73AE4F51084');
+                        done();
+                    }
+                });
+            });
+            it('shoud send xhr and reveive correct value with post', function(done){
+                $.ajax('http://api.jiepang.com/locations/show', { 
+                    type: 'post',
+                    data: {guid: '09CDE73AE4F51084', apiver: 5},
+                    success: function(res){
+                        res.guid.should.be.equal('09CDE73AE4F51084');
+                        done();
+                    }
+                });
+            });
+
+        });
+        describe('get', function(){
+            it('shoud send xhr and reveive correct value with get', function(done){
+                $.get('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    done();
+                });
+            });
+            it('shoud send xhr and reveive correct value with get', function(done){
+                $.get('http://api.jiepang.com/locations/show', {guid: '09CDE73AE4F51084', apiver: 5}, function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    done();
+                });
+            });
+        });
+        describe('post', function(){
+            it('shoud send xhr and reveive correct value with post', function(done){
+                $.post('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    done();
+                });
+            });
+            it('shoud send xhr and reveive correct value with post', function(done){
+                $.post('http://api.jiepang.com/locations/show', {guid: '09CDE73AE4F51084', apiver: 5}, function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    done();
+                });
+            });
+        });
+        describe('jsonp', function(){
+            it('shoud send xhr and reveive correct value with jsonp', function(done){
+                $.jsonp('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5&callback=?', {
+                    success: function(res){
+                        res.guid.should.be.equal('09CDE73AE4F51084');
+                        done();
+                    }
+                });
             });
         });
     });

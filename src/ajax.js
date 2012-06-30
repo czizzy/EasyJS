@@ -1,8 +1,11 @@
+'use strict';
 (function($){
     var rhtml = /^text\/html/,
         rjson = /^application\/json/,
         rxml = /^(application|text)\/xml/,
-        rscript = /^(application|text)\/script/;
+        rscript = /^(application|text)\/script/,
+
+        jsonpCallback = 0;
     
     function empty(){}
 
@@ -30,14 +33,16 @@
     }
 
     $.extend({
-        ajax: function(url, options) {  //TODO: timeout
-            var headers,
+        ajax: function(url, options) {  //TODO: error handling
+            var headers = {},
                 xhr = new XMLHttpRequest();
             options = $.default(options || {}, $.ajaxSettings);
-
+            if(options.dataType === 'jsonp')
+                return this.jsonp(url, options);
             if(options.data) options.data = serialize(options.data);
             if(options.data && options.type.toUpperCase() === 'GET') {
                 url = appendQuery(url, options.data);
+                delete options.data;
             }
 
             xhr.onreadystatechange = function() {
@@ -69,12 +74,11 @@
                 }
             };
             if(options.contentType || (options.data && options.type.toUpperCase() !== 'GET')) {
-                headers['Content-Type'] = options.contentType || 'application/x-www-form-rulencoded';
+                headers['Content-Type'] = options.contentType || 'application/x-www-form-urlencoded';
             }
-
             headers = $.extend(headers, options.headers || {});
-            
-            xhr.open(options.type, url, options.async);
+
+            xhr.open(options.type.toUpperCase(), url, options.async);
 
             // must after open and before send 
             // https://developer.mozilla.org/en/xmlhttprequest
@@ -84,21 +88,46 @@
                 xhr.abort();
                 return false;
             }
-            
             xhr.send(options.data||null); // TODO, build data
             return xhr;
         },
 
-        get: function() {
-
+        get: function(url, data, success) {
+            if(success === undefined){
+                success = data;
+                data = null;
+            }
+            return this.ajax(url, {
+                success: success,
+                data: data
+            });
         },
 
-        post: function() {
-
+        post: function(url, data, success) {
+            if(success === undefined){
+                success = data;
+                data = null;
+            }
+            return this.ajax(url, {
+                type: "POST",
+                success: success,
+                data: data
+            });
         },
 
-        jsonp: function() {
+        jsonp: function(url, options) {  // TODO: timeout
+            var xhr = {},
+                callback = 'callback' + (jsonpCallback++),
+                script = document.createElement('script');
 
+            window[callback] = function(response){
+                options.success(response);
+                delete window[callback];
+            };
+
+            script.src = url.replace(/=\?/,'='+callback);
+            document.head.appendChild(script);
+            return xhr;
         },
 
         param: function(obj) { //TODO non-traditional

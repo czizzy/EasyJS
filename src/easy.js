@@ -10,6 +10,7 @@
             origToString = Object.prototype.toString,
             origSlice = Array.prototype.slice,
             origFilter = Array.prototype.filter,
+            origMatch = HTMLElement.prototype.webkitMatchesSelector || HTMLElement.prototype.mozMatchesSelector,
 
             rid = /^#([\w-]+)$/,
             rclass = /^\.([\w-]+)$/,
@@ -74,9 +75,9 @@
             _matches = function(target, selector) {
                 if(!selector || (typeof selector !== 'string')) return target;
                 selector = selector.trim();
-                return target.nodeType === 1 ? (target.webkitMatchesSelector(selector) ? target : null)
+                return target.nodeType === 1 ? (origMatch.call(target, selector) ? target : null)
                 : (typeof target.length === 'number'? origFilter.call(target, function(item) {
-                    return item.nodeType === 1 && item.webkitMatchesSelector(selector.trim());
+                    return item.nodeType === 1 && origMatch.call(item, selector.trim());
                 }) : null);
             },
 
@@ -244,6 +245,9 @@
             },
 
             // Manipulation
+
+            // native classList api is faster
+            // https://developer.mozilla.org/media/uploads/demos/p/a/paulrouget/8bfba7f0b6c62d877a2b82dd5e10931e/hacksmozillaorg-achi_1334270447_demo_package/classList/
             addClass: function(name) {
                 var classNames, setClass;
                 if(this.length && name && typeof name === 'string') {
@@ -365,7 +369,7 @@
                         element.setAttribute(k, v);
                         return element;
                     }
-                },name, value);
+                }, name, value);
             },
 
             removeAttr: function(name) {
@@ -390,13 +394,15 @@
                 }, name, value);
             },
 
-            data: function(name, value) {            // TODO: optimize dataset
+            // getAttribute is faster than dataset 
+            // http://jsperf.com/domdata-dataset-get
+            data: function(name, value) {
                 return this.attr('data-' + _dasherize(name), value);
             },
 
             text: function(value) {
                 return this.access(function(element, k, v){
-                    if(value === undefined){
+                    if(v === undefined){
                         return element[k];
                     } else {
                         element[k] = v;
@@ -407,7 +413,7 @@
 
             html: function(value) {
                 return this.access(function(element, k, v){
-                    if(value === undefined){
+                    if(v === undefined){
                         return element[k];
                     } else {
                         element[k] = v;
@@ -418,7 +424,7 @@
 
             val: function(value) {
                 return this.access(function(element, k, v){
-                    if(value === undefined){
+                    if(v === undefined){
                         return element.multiple ? Easy(origFilter.call(element, function(e){ return e.selected; })).pluck(k) : element[k];
                     } else {
                         element[k] = v;
@@ -427,19 +433,19 @@
                 }, 'value', value);
             },
 
-            css: function(name, value) {  // TODO: name as object
-                var css = '';
-                if(value === undefined && typeof name === 'string'){
-                    return this.length === 0 ? undefined: (this[0].style[_camelize(name)] || window.getComputedStyle(this[0]).getPropertyValue(name));
-                } else {
-                    return this.each(function(element){
-                        if(value === '') {
-                            element.style.removeProperty(_dasherize(name));
+            css: function(name, value) {
+                return this.access(function(element, k, v){
+                    if(v === undefined) {
+                        return element.style[_camelize(k)] || window.getComputedStyle(element).getPropertyValue(_dasherize(k));
+                    } else {
+                        if(v === '') {
+                            element.style.removeProperty(_dasherize(k));
                         } else {
-                            element.style.cssText += (';' + _dasherize(name) + ':' + value + ';');
+                            element.style.cssText += (';' + _dasherize(k) + ':' + v + ';');
                         }
-                    });
-                }
+                        return element;
+                    }
+                }, name, value);
             },
 
             show: function() {
@@ -453,7 +459,7 @@
             },
 
             // Miscellaneous
-            ready: function(fn){      // TODO
+            ready: function(fn){
                 if(rready.test(document.readyState)) fn();
                 else document.addEventListener('DOMContentLoaded', fn, false);
                 return this;
@@ -498,6 +504,7 @@
         };
 
         Easy.extend({
+            version: '0.1',
             isEasy: function(obj){
                 return obj instanceof Easy;
             },
@@ -548,4 +555,11 @@
     })();
 
     window.$ = window.Easy = Easy;
+
+    // AMD support
+    if(typeof define === 'function'){
+        define('easy', [], function(require, exports){
+            return Easy;
+        });
+    }
 })(window);
