@@ -111,6 +111,8 @@
                 return displayCache[nodeName];
             };
 
+        function F(){}
+
         Easy.prototype = Easy.fn = {
             constructor: Easy,
 
@@ -513,6 +515,11 @@
             isFunction: _isFunction,
             isArray: Array.isArray || function(value) {
                 return origToString.call(value) === '[object Array]';
+            },
+
+            inherit: function(o) {
+                F.prototype = o;
+                return new F();
             },
 
             default: function(target, src) {

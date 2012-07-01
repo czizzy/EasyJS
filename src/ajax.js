@@ -14,7 +14,8 @@
         async: true,
         before: empty,
         success: empty,
-        error: empty
+        error: empty,
+        timeout: 0
     };
 
     function getDataType(mime) {
@@ -33,9 +34,10 @@
     }
 
     $.extend({
-        ajax: function(url, options) {  //TODO: error handling
+        ajax: function(url, options) {  //TODO: return deffer object
             var headers = {},
-                xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest(),
+                timeout;
             options = $.default(options || {}, $.ajaxSettings);
             if(options.dataType === 'jsonp')
                 return this.jsonp(url, options);
@@ -48,6 +50,7 @@
             xhr.onreadystatechange = function() {
                 var dataType, error, result;
                 if(xhr.readyState === 4){
+                    clearTimeout(timeout);
                     if((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
                         dataType = options.dataType || getDataType(xhr.getResponseHeader('content-type'));
                         result = xhr.responseText;
@@ -66,10 +69,10 @@
                         } catch(e) {
                             error = e;
                         }
-                        if(error) options.error(error, 'parsererror', xhr);
+                        if(error) options.error(xhr, 'parser error', error);
                         else options.success(result, xhr, options);
                     } else {
-                        options.error(null, error, xhr);
+                        options.error(xhr, xhr.statusText);
                     }
                 }
             };
@@ -87,6 +90,14 @@
             if(options.before(xhr, options) === false){
                 xhr.abort();
                 return false;
+            }
+
+            if(options.timeout > 0){
+                timeout = setTimeout(function(){
+                    xhr.onreadystatechange = empty;
+                    xhr.abort();
+                    options.error(xhr, 'timeout');
+                }, options.timeout);
             }
             xhr.send(options.data||null); // TODO, build data
             return xhr;
@@ -115,7 +126,7 @@
             });
         },
 
-        jsonp: function(url, options) {  // TODO: timeout
+        jsonp: function(url, options) {  // TODO: timeout and error handle
             var xhr = {},
                 callback = 'callback' + (jsonpCallback++),
                 script = document.createElement('script');

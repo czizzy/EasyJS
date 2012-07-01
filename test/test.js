@@ -300,6 +300,25 @@ window.setupTest = function(){
                 });
             });
         });
+        describe('error', function(){
+            it('shoud get timeout error', function(done){
+                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', {
+                    timeout: 10,
+                    error: function(xhr, type, error) {
+                        type.should.be.equal('timeout');
+                        done();
+                    }
+                });
+            });
+            it('shoud get internal error', function(done){
+                $.ajax('http://api.jiepang.com/locations/show?guid=ddd', {
+                    error: function(xhr, type, error) {
+                        type.should.be.equal('Internal Error');
+                        done();
+                    }
+                });
+            });
+        });
         describe('jsonp', function(){
             it('shoud send xhr and reveive correct value with jsonp', function(done){
                 $.jsonp('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5&callback=?', {
@@ -321,6 +340,68 @@ window.setupTest = function(){
                     done();
                 });
                 $('#checkbox').trigger('click');
+            });
+        });
+    });
+
+    describe('Deffered', function(){
+        describe('then', function(){
+            it('should emit "then" when the deffered object is resolved', function(done) {
+                var counter = 0, deffer = $.Deffered(function(deffered){
+                    $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
+                        type: 'post',
+                        success: deffered.resolve
+                    });
+                });
+                deffer.done(function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    counter++;
+                }).done(function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    counter++;
+                    counter.should.be.equal(2);
+                    counter.should.be.equal(2);
+                    deffer.isResolved().should.be.true;
+                    done();
+                });
+            });
+            it('should emit "fail" when the deffered object is rejected', function(done) {
+                var deffer = $.Deffered(function(deffered){
+                    deffered.fail(function(err){
+                        err.should.be.equal('error');
+                        done();
+                    });
+                });
+                deffer.reject('error');
+            });
+            
+        });
+        describe('when', function(){
+            it('should emit "done" when all the deffered object is resolved', function(done) {
+                var deffer = $.Deffered(function(deffered){
+                    $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
+                        type: 'post',
+                        success: deffered.resolve
+                    });
+                });
+                $.when(deffer, {a: 1}).done(function(res1, res2){
+                    res1.guid.should.be.equal('09CDE73AE4F51084');
+                    res2.a.should.be.equal(1);
+                    done();
+                });
+            });
+            it('should emit "fail" when one of the deffered object is rejected', function(done) {
+                var deffer = $.Deffered(function(deffered){
+                    $.ajax('http://api.jiepang.com/locations/show?guid=ddd', { 
+                        type: 'post',
+                        success: deffered.resolve,
+                        error: deffered.reject
+                    });
+                });
+                $.when(deffer, {a: 1}).fail(function(xhr, type){
+                    type.should.be.equal('Internal Error');
+                    done();
+                });
             });
         });
     });
