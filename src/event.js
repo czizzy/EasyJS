@@ -70,6 +70,8 @@
                 add(element, event, wrapper, selector);
             });
         }
+
+        // TODO: undelegate
     });
 
     ['focusin', 'focusout', 'load', 'resize', 'scroll', 'unload', 'click', 'dblclick', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'change', 'select', 'keydown', 'keypress', 'keyup', 'error'].forEach(function(event) {

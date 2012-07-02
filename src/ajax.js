@@ -34,10 +34,13 @@
     }
 
     $.extend({
-        ajax: function(url, options) {  //TODO: return deffer object
+        ajax: function(url, options) {
             var headers = {},
                 xhr = new XMLHttpRequest(),
+                deffered = new $.Deffered(),
                 timeout;
+            xhr = deffered.promise(xhr);
+
             options = $.default(options || {}, $.ajaxSettings);
             if(options.dataType === 'jsonp')
                 return this.jsonp(url, options);
@@ -69,10 +72,16 @@
                         } catch(e) {
                             error = e;
                         }
-                        if(error) options.error(xhr, 'parser error', error);
-                        else options.success(result, xhr, options);
+                        if(error){
+                            options.error && options.error(xhr, 'parser error', error);
+                            deffered.reject(xhr, 'parser error', error);
+                        } else {
+                            options.success && options.success(result, xhr, options);
+                            deffered.resolve(result, error, options);
+                        }
                     } else {
-                        options.error(xhr, xhr.statusText);
+                        options.error && options.error(xhr, xhr.statusText);
+                        deffered.reject(xhr, xhr.statusText);
                     }
                 }
             };
@@ -96,10 +105,11 @@
                 timeout = setTimeout(function(){
                     xhr.onreadystatechange = empty;
                     xhr.abort();
-                    options.error(xhr, 'timeout');
+                    options.error && options.error(xhr, 'timeout');
+                    deffered.reject(xhr, 'timeout');
                 }, options.timeout);
             }
-            xhr.send(options.data||null); // TODO, build data
+            xhr.send(options.data||null);
             return xhr;
         },
 
@@ -126,17 +136,38 @@
             });
         },
 
-        jsonp: function(url, options) {  // TODO: timeout and error handle
-            var xhr = {},
+        jsonp: function(url, options) {
+            var deffered = $.Deffered(),
+                xhr = deffered.promise(),
                 callback = 'callback' + (jsonpCallback++),
-                script = document.createElement('script');
+                script = document.createElement('script'),
+                timeout;
 
+            xhr.abort = function(){
+                script.parentNode.removeChild(script);
+                (callback in window) && (window[callback] = empty);
+            };
             window[callback] = function(response){
-                options.success(response);
+                options.success && options.success(response);
+                deffered.resolve(response);
                 delete window[callback];
             };
 
             script.src = url.replace(/=\?/,'='+callback);
+            if(options.timeout > 0) {
+                timeout = setTimeout(function(){
+                    xhr.abort();
+                    options.error && options.error(xhr, 'timeout');
+                    deffered.reject(xhr, 'timeout');
+                },options.timeout);
+            }
+            if(options.error) {
+                script.onerror = function() {
+                    xhr.abort();
+                    options.error(xhr, 'error');
+                    deffered.reject(xhr, 'error');
+                };
+            }
             document.head.appendChild(script);
             return xhr;
         },

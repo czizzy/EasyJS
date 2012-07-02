@@ -324,8 +324,21 @@ window.setupTest = function(){
                 $.jsonp('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5&callback=?', {
                     success: function(res){
                         res.guid.should.be.equal('09CDE73AE4F51084');
-                        done();
                     }
+                }).done(function(res){
+                    res.guid.should.be.equal('09CDE73AE4F51084');
+                    done();
+                });
+            });
+            it('shoud reveive timeout error', function(done){
+                $.jsonp('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5&callback=?', {
+                    timeout: 10,
+                    error: function(xhr, type){
+                        type.should.be.equal('timeout');
+                    }
+                }).fail(function(xhr, type){
+                    type.should.be.equal('timeout');
+                    done();
                 });
             });
         });
@@ -347,12 +360,7 @@ window.setupTest = function(){
     describe('Deffered', function(){
         describe('then', function(){
             it('should emit "then" when the deffered object is resolved', function(done) {
-                var counter = 0, deffer = $.Deffered(function(deffered){
-                    $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
-                        type: 'post',
-                        success: deffered.resolve
-                    });
-                });
+                var counter = 0, deffer = $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', {type: 'post'});
                 deffer.done(function(res){
                     res.guid.should.be.equal('09CDE73AE4F51084');
                     counter++;
@@ -378,12 +386,7 @@ window.setupTest = function(){
         });
         describe('when', function(){
             it('should emit "done" when all the deffered object is resolved', function(done) {
-                var deffer = $.Deffered(function(deffered){
-                    $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
-                        type: 'post',
-                        success: deffered.resolve
-                    });
-                });
+                var deffer = $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', {type: 'post'});
                 $.when(deffer, {a: 1}).done(function(res1, res2){
                     res1.guid.should.be.equal('09CDE73AE4F51084');
                     res2.a.should.be.equal(1);
@@ -391,13 +394,7 @@ window.setupTest = function(){
                 });
             });
             it('should emit "fail" when one of the deffered object is rejected', function(done) {
-                var deffer = $.Deffered(function(deffered){
-                    $.ajax('http://api.jiepang.com/locations/show?guid=ddd', { 
-                        type: 'post',
-                        success: deffered.resolve,
-                        error: deffered.reject
-                    });
-                });
+                var deffer = $.ajax('http://api.jiepang.com/locations/show?guid=ddd', {type: 'post'});
                 $.when(deffer, {a: 1}).fail(function(xhr, type){
                     type.should.be.equal('Internal Error');
                     done();

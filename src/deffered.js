@@ -35,37 +35,52 @@
                     },
                     isRejected: function(){
                         return rejected;
+                    },
+                    promise: function(){
+                        return this;
                     }
                 },
                 deffered = $.inherit(promise);
-            deffered.resolve = function(){
-                var self = this;
+            deffered.resolveWith = function(context){
+                var args = origSlice.call(arguments, 1);
                 if(!resolved && !rejected){
                     resolved = true;
-                    value = arguments;
+                    value = args;
                     if(callbacks){
                         callbacks.forEach(function(callback){
-                            callback.apply(self, value);
+                            callback.apply(context, value);
+                        });
+                    }
+                }
+            };
+            deffered.resolve = function(){
+                var args = origSlice.call(arguments, 0);
+                args.unshift(this);
+                return deffered.resolveWith.apply(this, args);
+            };
+            deffered.rejectWith = function(context){
+                var args = origSlice.call(arguments, 1);
+                if(!rejected && !resolved){
+                    rejected = true;
+                    error = args;
+                    if(errCallbacks){
+                        errCallbacks.forEach(function(callback){
+                            callback.apply(context, error);
                         });
                     }
                 }
             };
             deffered.reject = function(){
-                var self = this;
-                if(!rejected && !resolved){
-                    rejected = true;
-                    error = arguments;
-                    if(errCallbacks){
-                        errCallbacks.forEach(function(callback){
-                            callback.apply(self, error);
-                        });
-                    }
-                }
+                var args = origSlice.call(arguments, 0);
+                args.unshift(this);
+                return deffered.rejectWith.apply(this, args);
             };
-            deffered.promise = function(){
+            deffered.promise = function(target){
+                if($.isObject(target)){
+                    return $.extend(target, promise);                    
+                }
                 return promise;
             };
-
             initFunc && initFunc.call(deffered, deffered);
             return deffered;
         },

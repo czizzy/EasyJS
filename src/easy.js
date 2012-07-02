@@ -413,7 +413,7 @@
                 }, 'textContent', value);
             },
 
-            html: function(value) {
+            html: function(value) {  // TODO: value can be element or Easy Obj
                 return this.access(function(element, k, v){
                     if(v === undefined){
                         return element[k];
@@ -459,6 +459,8 @@
             hide: function() {
                 return this.css('display', 'none');
             },
+
+            // TODO: append, prepend and remove
 
             // Miscellaneous
             ready: function(fn){
@@ -542,7 +544,7 @@
                     .replace(/\//g,'&#x2F;');
             },
 
-            template: function(template) {
+            template: function(template) {  // TODO: configurable
                 var content = /<%=([\s\S]+?)%>/g, escaper = /<%-([\s\S]+?)%>/g, coder = /<%([\s\S]+?)%>/g, spaceRex = /(\r|\n|\t)/g;
                 var source = "var __p='';__p+='" + template.replace(spaceRex, '')
                         .replace(content, "'+$1+'")
