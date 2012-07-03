@@ -1,20 +1,21 @@
 'use strict';
 (function($) {
-    var handlers = {}, _eid = 1, specialEvents = {};
+    var handlers = {}, _eid = 1, specialEvents = {},
+        eventMethods = ['preventDefault', 'stopImmediatePropagation', 'stopPropagation'];
     specialEvents.click = specialEvents.mousedown = specialEvents.mouseup = specialEvents.mousemove = 'MouseEvents';
 
     function eid(element) {
-        return element._eid || (element._eid == _eid++);
+        return element._eid || (element._eid = _eid++);
     }
 
     function getHandlers(element, event, fn, selector){
         var element_eid = eid(element);
         return (handlers[element_eid] || []).filter(function(handler){
-            return handler && (handler.event == event) && (!selector || selector === handler.selector) && (!fn || fn === handler);
+            return handler && (handler.event == event) && (!selector || selector === handler.selector) && (!fn || fn === handler || fn === handler.originalHandler);
         });
     }
 
-    function add(element, event, fn, selector) {  // TODO: fn is unique
+    function add(element, event, fn, selector) {
         var element_eid = eid(element);
         fn.event = event;
         fn.selector = selector;
@@ -28,6 +29,16 @@
             elementHandlers.splice(elementHandlers.indexOf(handler), 1);
             element.removeEventListener(handler.event, handler);
         });
+    }
+
+    function createProxy(event){
+        var proxy = $.extend({originalEvent: event}, event);
+        eventMethods.forEach(function(method){
+            proxy[method] = function(){
+                return event[method].apply(event, arguments);
+            };
+        });
+        return proxy;
     }
 
     $.Event = function(type, options) {
@@ -60,18 +71,26 @@
         delegate: function(event, selector, fn) {
             return this.each(function(element){
                 var wrapper = function(e) {
-		            // TODO: use custom Event rather than the (read-only) native event
-                    var match;
+                    var event, match;
                     if(match = $(e.target).closest(selector, element)[0]){
-                        //e.currentTarget = match;
-                        return fn.call(match, e);
+		                // use custom Event rather than the (read-only) native event
+                        event = createProxy(e);
+                        event.currentTarget = match;
+                        return fn.call(match, event);
                     }
                 };
+                wrapper.originalHandler = fn;
                 add(element, event, wrapper, selector);
+            });
+        },
+
+        undelegate: function(event, selector, fn) {
+            return this.each(function(element) {
+                remove(element, event, fn, selector);
             });
         }
 
-        // TODO: undelegate
+        // TODO: on and off
     });
 
     ['focusin', 'focusout', 'load', 'resize', 'scroll', 'unload', 'click', 'dblclick', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'change', 'select', 'keydown', 'keypress', 'keyup', 'error'].forEach(function(event) {

@@ -204,6 +204,14 @@ window.setupTest = function(){
             it('shoud get and set html', function(){
                 $('#inner-2').html('<b>easyjs</b>').html().should.be.equal('<b>easyjs</b>');
             });
+            it('shoud get and set html with dom element', function(){
+                var element = document.createElement('i');
+                element.innerHTML = 'dom element';
+                $('#inner-2').html(element).html().should.be.equal('<i>dom element</i>');
+            });
+            it('shoud get and set html with Easy Object', function(){
+                $('#inner-2').html($('<b>aaa</b>')).html().should.be.equal('<b>aaa</b>');
+            });
         });
         describe('val', function(){
             it('shoud get and set value', function(){
@@ -353,6 +361,16 @@ window.setupTest = function(){
                     done();
                 });
                 $('#checkbox').trigger('click');
+            });
+        });
+        describe('delegate', function(){
+            it('should delegate event on the correct elements', function(done) {
+                $('body').delegate('click', '#mocha', function(e){
+                    e.currentTarget.should.be.equal(document.getElementById('mocha'));
+                    e.type.should.be.equal('click');
+                    done();
+                });
+                $('#mocha').trigger('click');
             });
         });
     });

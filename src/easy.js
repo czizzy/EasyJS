@@ -16,6 +16,7 @@
             rclass = /^\.([\w-]+)$/,
             rtag = /^([\w-]+)$/,
             rspace = /\s+/,
+            rfragment = /^\s*<(\w+)>/,
             rready = /interactive|complete/,
             propFix = {
                 tabindex: "tabIndex",
@@ -31,6 +32,9 @@
                 frameborder: "frameBorder",
                 contenteditable: "contentEditable"
             },
+
+            // TODO: fix table element
+            container = document.createElement('div'),
 
             // optimize options
             hasClassList = false,
@@ -136,13 +140,22 @@
 
                 if(typeof selector === "string") {
                     selector = selector.trim();
-                    this.selector = selector;
-                    if(match = selector.match(rid)){
-                        _merge(this, document.getElementById(match[1]));
-                        return this;
+                    if(rfragment.test(selector)){
+                        container.innerHTML = selector;
+                        return this.constructor(origSlice.call(container.childNodes, 0).map(
+                            function(node){
+                                return container.removeChild(node);
+                            }
+                        ));
                     } else {
-                        context = context?(Easy.isEasy(context)?context:this.constructor(context)):this.constructor(document);
-                        return context.find(selector);
+                        this.selector = selector;
+                        if(match = selector.match(rid)){
+                            _merge(this, document.getElementById(match[1]));
+                            return this;
+                        } else {
+                            context = context?(Easy.isEasy(context)?context:this.constructor(context)):this.constructor(document);
+                            return context.find(selector);
+                        }
                     }
                 }
 
@@ -402,6 +415,18 @@
                 return this.attr('data-' + _dasherize(name), value);
             },
 
+            empty: function() {
+                return this.each(function(element){
+                    element.innerHTML = '';
+                });
+            },
+
+            remove: function() {
+                return this.each(function(element) {
+                    element.parentNode.removeChild(element);
+                });
+            },
+
             text: function(value) {
                 return this.access(function(element, k, v){
                     if(v === undefined){
@@ -413,12 +438,20 @@
                 }, 'textContent', value);
             },
 
-            html: function(value) {  // TODO: value can be element or Easy Obj
+            html: function(value) {
                 return this.access(function(element, k, v){
                     if(v === undefined){
                         return element[k];
                     } else {
-                        element[k] = v;
+                        if(typeof v === 'string'){
+                            element[k] = v;
+                        } else if(v.nodeType === 1 || v.nodeType === 11){
+                            element.innerHTML = '';
+                            element.appendChild(v);
+                        } else if(Easy.isEasy(v)){
+                            element.innerHTML = '';
+                            element.appendChild(v[0]);
+                        }
                         return element;
                     }
                 }, 'innerHTML', value);
@@ -460,7 +493,7 @@
                 return this.css('display', 'none');
             },
 
-            // TODO: append, prepend and remove
+            // TODO: append, prepend
 
             // Miscellaneous
             ready: function(fn){
