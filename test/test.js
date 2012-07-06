@@ -1,4 +1,6 @@
 window.setupTest = function(){
+
+    // TODO refactor test case
     describe('DOM Selector', function(){
         describe('id selector', function(){
             it('should return correct element with the id selector', function(){
@@ -213,6 +215,34 @@ window.setupTest = function(){
                 $('#inner-2').html($('<b>aaa</b>')).html().should.be.equal('<b>aaa</b>');
             });
         });
+        describe('append', function(){
+            it('shoud append node element', function(){
+                var node = document.createElement('b');
+                node.innerHTML = "append";
+                $('#inner-2').append(node).html().should.be.equal('<b>aaa</b><b>append</b>');
+            });
+            it('shoud append string content', function(){
+                $('#inner-2').append('bbb<i>inject string content</i>').html().should.be.equal('<b>aaa</b><b>append</b>bbb<i>inject string content</i>');
+            });
+            it('shoud reserve the original nodes and clone for the other', function(){
+                var a = $('#inner-2');
+                $('.inner-class').append(a);
+                a[0].parentNode.should.be.equal(document.getElementById('inner')); 
+            });
+
+        });
+
+        describe('prepend', function(){
+            it('shoud prepend node element', function(){
+                var node = document.createElement('b');
+                node.innerHTML = "prepend";
+                $('#inner-2').prepend(node).html().should.be.equal('<b>prepend</b><b>aaa</b><b>append</b>bbb<i>inject string content</i>');
+            });
+            it('shoud prepend string content', function(){
+                $('#inner-2').prepend('abc<i>prepend string content</i>').html().should.be.equal('abc<i>prepend string content</i><b>prepend</b><b>aaa</b><b>append</b>bbb<i>inject string content</i>');
+            });
+        });
+
         describe('val', function(){
             it('shoud get and set value', function(){
                 $('#checkbox').val(0).val().should.be.equal('0');

@@ -85,6 +85,31 @@
                 }) : null);
             },
 
+            _fragment = function(s) {
+                container.innerHTML = s;
+                return origSlice.call(container.childNodes, 0).map(
+                    function(node){
+                        return container.removeChild(node);
+                    }
+                );
+            },
+
+            _getHTML = function(nodes) {
+                var value, i, l, node;
+                if(l = nodes.length){
+                    for(i = 0, l = nodes.length; i < l; i++){
+                        // Easy Obj, reserve the origin nodes
+                        container.appendChild(nodes[i].cloneNode(true));
+                    }
+                } else if (nodes.nodeType) {
+                    // reserve the origin nodes
+                    container.appendChild(nodes.cloneNode(true));
+                }
+                value = container.innerHTML;
+                container.innerHTML = '';
+                return value;
+            },
+
             _each = function(target, callback) {
                 if(!target.length) return;
                 for(var i = 0; i < target.length; i++){
@@ -141,12 +166,7 @@
                 if(typeof selector === "string") {
                     selector = selector.trim();
                     if(rfragment.test(selector)){
-                        container.innerHTML = selector;
-                        return this.constructor(origSlice.call(container.childNodes, 0).map(
-                            function(node){
-                                return container.removeChild(node);
-                            }
-                        ));
+                        return this.constructor(_fragment(selector));
                     } else {
                         this.selector = selector;
                         if(match = selector.match(rid)){
@@ -445,7 +465,7 @@
                     } else {
                         if(typeof v === 'string'){
                             element[k] = v;
-                        } else if(v.nodeType === 1 || v.nodeType === 11){
+                        } else if(v.nodeType){
                             element.innerHTML = '';
                             element.appendChild(v);
                         } else if(Easy.isEasy(v)){
@@ -455,6 +475,70 @@
                         return element;
                     }
                 }, 'innerHTML', value);
+            },
+
+            append: function(target) {
+                var value;
+                if(typeof target !== 'string'){
+                    value = _getHTML(target);
+                } else {
+                    value = target;
+                }
+                return this.each(function(element, index){
+                    var i, l;
+                    if(!index && typeof target !== 'string'){
+                        if('length' in target){
+                            for(i = 0, l = target.length; i < l; i++){
+                                element.appendChild(target[i]);
+                            }
+                        } else if(target.nodeType) {
+                            element.appendChild(target);
+                        }
+                    } else {
+                        element.insertAdjacentHTML('beforeend', value);
+                    }
+                });
+            },
+
+            appendTo: function(value) { // TODO: test case
+                if(Easy.isEasy(value)){
+                    value.append(this);
+                } else {
+                    this.constructor(value).append(this);
+                }
+                return this;
+            },
+
+            prepend: function(target) {
+                var value;
+                if(typeof target !== 'string'){
+                    value = _getHTML(target);
+                } else {
+                    value = target;
+                }
+                return this.each(function(element, index){
+                    var i;
+                    if(!index && typeof target !== 'string'){
+                        if('length' in target){
+                            for(i = target.length - 1; i >= 0; i--){
+                                element.insertBefore(target[i], element.firstChild);
+                            }
+                        } else if(target.nodeType) {
+                            element.insertBefore(target, element.firstChild);
+                        }
+                    } else {
+                        element.insertAdjacentHTML('afterbegin', value);
+                    }
+                });
+            },
+
+            prependTo: function(value) { // TODO: test case
+                if(Easy.isEasy(value)){
+                    value.prepend(this);
+                } else {
+                    this.constructor(value).prepend(this);
+                }
+                return this;
             },
 
             val: function(value) {
