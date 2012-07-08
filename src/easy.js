@@ -64,11 +64,12 @@
 
                 first.length = i;
 
-                // make the results unique
+                // make the result elements unique
                 for(var m = cachedLength; m < i; m++){
                     for(var n = 0; n < cachedLength; n++){
                         if(first[m] === first[n]){
-                            first.splice(m--, 1);
+                            first.splice(m--, 1);  // first.length is modified by splice
+                            i--;
                             break;
                         }
                     }
@@ -77,11 +78,13 @@
             },
 
             _matches = function(target, selector) {
-                if(!selector || (typeof selector !== 'string')) return target;
+                if(!selector || (typeof selector !== 'string')) return target.nodeType ? target : origFilter.call(target, function(item){
+                    return item;
+                });
                 selector = selector.trim();
                 return target.nodeType === 1 ? (origMatch.call(target, selector) ? target : null)
-                : (typeof target.length === 'number'? origFilter.call(target, function(item) {
-                    return item.nodeType === 1 && origMatch.call(item, selector.trim());
+                : (typeof target.length === 'number' ? origFilter.call(target, function(item) {
+                    return item && item.nodeType === 1 && origMatch.call(item, selector.trim());
                 }) : null);
             },
 

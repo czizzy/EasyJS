@@ -6,43 +6,39 @@
     <!-- Mocha -->
     <link rel="stylesheet" href="mocha.css" />
     <script src="mocha.js"></script>
-    <script>
-      mocha.setup({
-        ui: 'bdd',
-        globals: [],
-        timeout: 2500,
-        ignoreLeaks: true
-      });
-    </script>
     
     <!-- Chai -->
     <script src="chai.js"></script>
-    <script>var should = chai.Should();</script>
+
 
 </head>
 <body>
     <div id="mocha"></div>
+
+    <div id="test-area"></div>
     
-    <ruby id="test" class="outer-class">
-      <ruby id="inner" class="inner-class"></ruby>
-      <ruby class="inner-class"><i>1</i></ruby>
-    </ruby>
-    <ruby id="test-2" class="outer-class">
-      <ruby id="inner-2" class="inner-class"><i>2</i></ruby>
-      <ruby class="inner-class"></ruby>
-    </ruby>
-    <input id="checkbox" checked="checked" type="text" class="checkbox"/>
-    <select multiple="multiple" id="select">
-      <option value="a">a</option>
-      <option value="b" selected>b</option>
-      <option value="c" selected>c</option>
-      <option value="d">d</option>
-    </select>
     <script src="../src/easy.js"></script>
     <script src="../src/ajax.js"></script>
     <script src="../src/event.js"></script>
     <script src="../src/deffered.js"></script>
     <script src="test.js"></script>
+    <script type="text/tmpl" id="test-content">
+      <ruby id="outer-1" class="outer-class">
+        <ruby class="inner-class" id="inner-1"><i>hello</i></ruby>
+        <ruby class="inner-class"></ruby>
+      </ruby>
+      <ruby id="outer-2" class="outer-class">
+        <ruby class="inner-class"><i></i></ruby>
+        <ruby class="inner-class"></ruby>
+      </ruby>
+      <input id="checkbox" checked="checked" type="text" class="checkbox"/>
+      <select multiple="multiple" id="select">
+        <option value="a">a</option>
+        <option value="b" selected>b</option>
+        <option value="c" selected>c</option>
+        <option value="d">d</option>
+      </select>
+    </script>
     <script>
         setupTest();
         mocha.run();
