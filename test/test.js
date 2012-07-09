@@ -11,7 +11,7 @@ window.setupTest = function(){
     beforeEach(function(){
         testArea.innerHTML = testContent;
     });
-    // TODO refactor test case
+
     describe('DOM Selector', function(){
         describe('id selector', function(){
             it('should return correct element with the id selector', function(){
@@ -53,17 +53,17 @@ window.setupTest = function(){
 
     describe('Miscellaneous', function(){
         describe('add', function(){
-            it('shoud add elements and return correct result', function(){
+            it('should add elements and return correct result', function(){
                 $('#test-area').add('ruby').should.be.length(7);
                 $('#outer-class').add('ruby').should.be.length(6);
             });
         });
 
         describe('get', function(){
-            it('shoud get all elements without index', function(){
+            it('should get all elements without index', function(){
                 $('#test-area').get().should.be.length(1).and.be.an.instanceof(Array);
             });
-            it('shoud get the element at index', function(){
+            it('should get the element at index', function(){
                 $('#test-area').get(0).should.be.equal(document.getElementById('test-area'));
                 should.not.exist($('#not-exist').get(0));
             });
@@ -72,7 +72,7 @@ window.setupTest = function(){
 
     describe('Traversing', function(){
         describe('find', function(){
-            it('shoud find elements and return correct result', function(){
+            it('should find elements and return correct result', function(){
                 $('#test-area').find('ruby i').should.be.length(2);
                 $('.outer-class').find('.inner-class').should.be.length(4);
                 $('ruby').find('ruby').should.be.length(4);
@@ -81,10 +81,10 @@ window.setupTest = function(){
         });
 
         describe('children', function(){
-            it('shoud get all children without selector', function(){
+            it('should get all children without selector', function(){
                 $('ruby').children().should.be.length(6);
             });
-            it('shoud get the matched children with selector', function(){
+            it('should get the matched children with selector', function(){
                 $('#test-area').children('.outer-class').should.be.length(2);
                 $('#test-area').children('#outer-1').should.be.length(1);
                 $('ruby').children('ruby').should.be.length(4);
@@ -92,30 +92,30 @@ window.setupTest = function(){
         });
 
         describe('parent', function(){
-            it('shoud get all immediate parents without selector', function(){
+            it('should get all immediate parents without selector', function(){
                 $('.inner-class').parent().should.be.length(2);
             });
-            it('shoud get the matched immediate parent with selector', function(){
+            it('should get the matched immediate parent with selector', function(){
                 $('.inner-class').parent('#outer-1').should.be.length(1);
                 $('.inner-class').parent().should.be.length(2);
             });
         });
 
         describe('parents', function(){
-            it('shoud get all parents without selector', function(){
+            it('should get all parents without selector', function(){
                 $('.inner-class').parents().should.be.length(5);
             });
-            it('shoud get the matched parent with selector', function(){
+            it('should get the matched parent with selector', function(){
                 $('.inner-class').parents('#test-area').should.be.length(1);
                 $('.inner-class').parents('ruby').should.be.length(2);
             });
         });
 
         describe('closest', function(){
-            it('shoud get closest itself without selector', function(){
+            it('should get closest itself without selector', function(){
                 $('.inner-class').closest()[0].id.should.be.equal('inner-1');
             });
-            it('shoud get the matched closest parent with selector', function(){
+            it('should get the matched closest parent with selector', function(){
                 $('.inner-class').closest('ruby')[0].id.should.be.equal('inner-1');
                 $('.inner-class').closest('.outer-class')[0].id.should.be.equal('outer-1');
                 $('.inner-class').closest('.non-exist').should.be.length(0);
@@ -126,14 +126,14 @@ window.setupTest = function(){
         });
 
         describe('prev and next', function(){
-            it('shoud get all next(prev) immediate siblings without selector', function(){
+            it('should get all next(prev) immediate siblings without selector', function(){
                 $('#outer-2').prev().should.be.length(1);
                 $('.outer-class').prev().should.be.length(1);
 
                 $('#outer-1').next().should.be.length(1);
                 $('.inner-class').next().should.be.length(2);
             });
-            it('shoud get the matched next(prev) immediate siblings with selector', function(){
+            it('should get the matched next(prev) immediate siblings with selector', function(){
                 $('.outer-class').next('.outer-class').should.be.length(1);
 
                 $('.outer-class').prev('.outer-class').should.be.length(1);
@@ -141,10 +141,10 @@ window.setupTest = function(){
         });
 
         describe('siblings', function(){
-            it('shoud get all siblings without selector', function(){
+            it('should get all siblings without selector', function(){
                 $('.inner-class').siblings().should.be.length(4);
             });
-            it('shoud get the matched next(prev) immediate siblings with selector', function(){
+            it('should get the matched next(prev) immediate siblings with selector', function(){
                 $('.inner-class').siblings('#inner-1').should.be.length(1);
             });
         });
@@ -152,7 +152,7 @@ window.setupTest = function(){
 
     describe('Manipulation', function(){
         describe('addClass(removeClass)', function(){
-            it('shoud add(remove) correct class to the elements', function(){
+            it('should add(remove) correct class to the elements', function(){
                 $('#outer-1').addClass('a b c');
                 document.getElementById('outer-1').className.should.be.equal('outer-class a b c');
                 $('#outer-1').removeClass();
@@ -170,7 +170,7 @@ window.setupTest = function(){
             });
         });
         describe('hasClass', function(){
-            it('shoud return if the element has the given class name', function(){
+            it('should return if the element has the given class name', function(){
                 $('#outer-1').hasClass('a').should.be.false;
                 $('#outer-1').addClass('a b c');
                 $('#outer-1').hasClass('a').should.be.true;
@@ -180,20 +180,20 @@ window.setupTest = function(){
             });
         });
         describe('toggleClass', function(){
-            it('shoud toggle class', function(){
+            it('should toggle class', function(){
                 $('#outer-1').toggleClass('a')[0].className.should.be.equal('outer-class a');
                 $('#outer-1').toggleClass('a b c')[0].className.should.be.equal('outer-class b c');
             });
         });
         describe('attr', function(){
-            it('shoud get and set attribute', function(){
+            it('should get and set attribute', function(){
                 $('#outer-1').attr('abc','a').attr('abc').should.be.equal('a');
                 $('#outer-1').attr({'abc':'b', 'bcd':'c'}).attr('abc').should.be.equal('b');
                 $('#outer-1').attr('bcd').should.be.equal('c');
                 $('#checkbox').attr('checked').should.be.equal('checked');
                 $('#checkbox').attr('class').should.be.equal('checkbox');
             });
-            it('shoud get and set property', function(){
+            it('should get and set property', function(){
                 $('#checkbox').prop('checked').should.be.true;
                 $('#checkbox')[0].checked = false;
                 $('#checkbox').attr('checked').should.be.equal('checked');
@@ -202,41 +202,61 @@ window.setupTest = function(){
             });
         });
         describe('data', function(){
-            it('shoud get and set data', function(){
+            it('should get and set data', function(){
                 $('#checkbox').data('uniqueID', '444').attr('data-unique-id').should.be.equal('444');
                 $('#checkbox').data('uniqueName', 'easy').attr('data-unique-name').should.be.equal('easy');
                 $('#checkbox').data('feature', 'fast').attr('data-feature').should.be.equal('fast');
             });
         });
         describe('text', function(){
-            it('shoud get and set text content', function(){
+            it('should get and set text content', function(){
                 $('#inner-1').text().should.be.equal('hello');
                 $('#inner-1 i').text('easyjs').text().should.be.equal('easyjs');
             });
         });
         describe('html', function(){
-            it('shoud get and set html', function(){
+            it('should get and set html', function(){
                 $('#inner-1').html('<b>easyjs</b>').html().should.be.equal('<b>easyjs</b>');
             });
-            it('shoud get and set html with dom element', function(){
+            it('should get and set html with dom element', function(){
                 var element = document.createElement('i');
                 element.innerHTML = 'dom element';
                 $('#inner-1').html(element).html().should.be.equal('<i>dom element</i>');
             });
-            it('shoud get and set html with Easy Object', function(){
+            it('should get and set html with Easy Object', function(){
                 $('#inner-1').html($('<b>aaa</b>')).html().should.be.equal('<b>aaa</b>');
             });
         });
+        describe('after', function(){
+            it('should append node element after the element', function(){
+                var node = document.createElement('b');
+                node.innerHTML = "after";
+                node.id = "after";
+                $('#outer-1').after(node);
+                $('#outer-1').next()[0].id.should.be.equal('after');
+            });
+            it('should append string content after the target', function(){
+                $('#outer-2').after('<ruby id="after">after</i>');
+                $('#outer-2').next()[0].id.should.be.equal('after');
+            });
+            it('should reserve the original nodes and clone for the other', function(){
+                var a = $('.inner-class');
+                $('.outer-class').after(a);
+                a[0].parentNode.should.be.equal(document.getElementById('test-area'));
+                $('#test-area').children('ruby').should.be.length(10);
+            });
+
+        });
         describe('append', function(){
-            it('shoud append node element', function(){
+            it('should append node element', function(){
                 var node = document.createElement('b');
                 node.innerHTML = "append";
                 $('#inner-1').append(node).html().should.be.equal('<i>hello</i><b>append</b>');
             });
-            it('shoud append string content', function(){
+            it('should append string content', function(){
                 $('#inner-1').append('bbb<i>inject string content</i>').html().should.be.equal('<i>hello</i>bbb<i>inject string content</i>');
             });
-            it('shoud reserve the original nodes and clone for the other', function(){
+            it('should reserve the original nodes and clone for the other', function(){
                 var a = $('#outer-2');
                 $('.inner-class').append(a);
                 a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
@@ -244,31 +264,51 @@ window.setupTest = function(){
 
         });
         describe('appendTo', function(){
-            it('shoud reserve the original nodes and clone for the other', function(){
+            it('should reserve the original nodes and clone for the other', function(){
                 var a = $('#outer-2');
                 a.appendTo('.inner-class');
                 a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
             });
 
         });
+        describe('before', function(){
+            it('should prepend node element after the element', function(){
+                var node = document.createElement('b');
+                node.innerHTML = "before";
+                node.id = "before";
+                $('#outer-1').before(node);
+                $('#outer-1').prev()[0].id.should.be.equal('before');
+            });
+            it('should prepend string content after the target', function(){
+                $('#outer-2').before('<ruby id="before">before</i>');
+                $('#outer-2').prev()[0].id.should.be.equal('before');
+            });
+            it('should reserve the original nodes and clone for the other', function(){
+                var a = $('.inner-class');
+                $('.outer-class').before(a);
+                a[0].parentNode.should.be.equal(document.getElementById('test-area'));
+                $('#test-area').children('ruby').should.be.length(10);
+            });
+
+        });
         describe('prepend', function(){
-            it('shoud prepend node element', function(){
+            it('should prepend node element', function(){
                 var node = document.createElement('b');
                 node.innerHTML = "prepend";
                 $('#inner-1').prepend(node).html().should.be.equal('<b>prepend</b><i>hello</i>');
             });
-            it('shoud prepend string content', function(){
+            it('should prepend string content', function(){
                 $('#inner-1').prepend('abc<i>prepend string content</i>').html().should.be.equal('abc<i>prepend string content</i><i>hello</i>');
             });
         });
         describe('val', function(){
-            it('shoud get and set value', function(){
+            it('should get and set value', function(){
                 $('#checkbox').val(0).val().should.be.equal('0');
                 $('#select').val().toString().should.be.equal('b,c');
             });
         });
         describe('css', function(){
-            it('shoud get and set css property', function(){
+            it('should get and set css property', function(){
                 $('#inner-1').css('display').should.be.equal('inline');
                 $('#inner-1').css('display', 'block').css('display').should.be.equal('block');
                 $('#inner-1').css('display', '').css('display').should.be.equal('inline');
@@ -279,7 +319,7 @@ window.setupTest = function(){
 
     describe('AJAX', function(){
         describe('param', function(){
-            it('shoud return correct serialized data', function(){
+            it('should return correct serialized data', function(){
                 $.param({a: {
                     one: 1,
                     two: 2,
@@ -290,7 +330,7 @@ window.setupTest = function(){
             });
         });
         describe('ajax', function(){
-            it('shoud send xhr and reveive correct value with get', function(done){
+            it('should send xhr and reveive correct value with get', function(done){
                 $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
                     success: function(res){
                         res.guid.should.be.equal('09CDE73AE4F51084');
@@ -298,7 +338,7 @@ window.setupTest = function(){
                     }
                 });
             });
-            it('shoud send xhr and reveive correct value with get', function(done){
+            it('should send xhr and reveive correct value with get', function(done){
                 $.ajax('http://api.jiepang.com/locations/show', { 
                     data: {guid: '09CDE73AE4F51084', apiver: 5},
                     success: function(res){
@@ -307,7 +347,7 @@ window.setupTest = function(){
                     }
                 });
             });
-            it('shoud send xhr and reveive correct value with post', function(done){
+            it('should send xhr and reveive correct value with post', function(done){
                 $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
                     type: 'post',
                     success: function(res){
@@ -316,7 +356,7 @@ window.setupTest = function(){
                     }
                 });
             });
-            it('shoud send xhr and reveive correct value with post', function(done){
+            it('should send xhr and reveive correct value with post', function(done){
                 $.ajax('http://api.jiepang.com/locations/show', { 
                     type: 'post',
                     data: {guid: '09CDE73AE4F51084', apiver: 5},
@@ -329,13 +369,13 @@ window.setupTest = function(){
 
         });
         describe('get', function(){
-            it('shoud send xhr and reveive correct value with get', function(done){
+            it('should send xhr and reveive correct value with get', function(done){
                 $.get('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', function(res){
                     res.guid.should.be.equal('09CDE73AE4F51084');
                     done();
                 });
             });
-            it('shoud send xhr and reveive correct value with get', function(done){
+            it('should send xhr and reveive correct value with get', function(done){
                 $.get('http://api.jiepang.com/locations/show', {guid: '09CDE73AE4F51084', apiver: 5}, function(res){
                     res.guid.should.be.equal('09CDE73AE4F51084');
                     done();
@@ -343,13 +383,13 @@ window.setupTest = function(){
             });
         });
         describe('post', function(){
-            it('shoud send xhr and reveive correct value with post', function(done){
+            it('should send xhr and reveive correct value with post', function(done){
                 $.post('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', function(res){
                     res.guid.should.be.equal('09CDE73AE4F51084');
                     done();
                 });
             });
-            it('shoud send xhr and reveive correct value with post', function(done){
+            it('should send xhr and reveive correct value with post', function(done){
                 $.post('http://api.jiepang.com/locations/show', {guid: '09CDE73AE4F51084', apiver: 5}, function(res){
                     res.guid.should.be.equal('09CDE73AE4F51084');
                     done();
@@ -357,7 +397,7 @@ window.setupTest = function(){
             });
         });
         describe('error', function(){
-            it('shoud get timeout error', function(done){
+            it('should get timeout error', function(done){
                 $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', {
                     timeout: 10,
                     error: function(xhr, type, error) {
@@ -366,7 +406,7 @@ window.setupTest = function(){
                     }
                 });
             });
-            it('shoud get internal error', function(done){
+            it('should get internal error', function(done){
                 $.ajax('http://api.jiepang.com/locations/show?guid=ddd', {
                     error: function(xhr, type, error) {
                         type.should.be.equal('Internal Error');
@@ -376,7 +416,7 @@ window.setupTest = function(){
             });
         });
         describe('jsonp', function(){
-            it('shoud send xhr and reveive correct value with jsonp', function(done){
+            it('should send xhr and reveive correct value with jsonp', function(done){
                 $.jsonp('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5&callback=?', {
                     success: function(res){
                         res.guid.should.be.equal('09CDE73AE4F51084');
@@ -386,7 +426,7 @@ window.setupTest = function(){
                     done();
                 });
             });
-            it('shoud reveive timeout error', function(done){
+            it('should reveive timeout error', function(done){
                 $.jsonp('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5&callback=?', {
                     timeout: 10,
                     error: function(xhr, type){

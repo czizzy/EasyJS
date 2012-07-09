@@ -113,6 +113,53 @@
                 return value;
             },
 
+            _insert = function(target, method, context) {
+                var elementsHTML;
+                if(typeof target !== 'string'){
+                    elementsHTML = _getHTML(target);
+                } else {
+                    elementsHTML = target;
+                }
+                return context.each(function(element, index){
+                    var i, l, src, parent, insertMethod, insert = "insertBefore", append = "appendChild", reverse = false;
+                    if(!index && typeof target !== 'string'){
+                        switch (method) {
+                        case 'afterend':
+                            parent = element.parentNode;
+                            src = element.nextSibling;
+                            insertMethod = src ? insert : append;
+                            break;
+                        case 'beforebegin':
+                            parent = element.parentNode;
+                            src = element;
+                            insertMethod = insert;
+                            break;
+                        case 'afterbegin':
+                            parent = element;
+                            src = element.firstChild;
+                            insertMethod = insert;
+                            reverse = true;
+                            break;
+                        case 'beforeend':
+                            parent = element;
+                            src = element;
+                            insertMethod = append;
+                            break;
+                        }
+                        if('length' in target) {
+                            reverse && Array.prototype.reverse.apply(target);
+                            for(i = 0, l = target.length; i < l; i++){
+                                parent[insertMethod](target[i], src);
+                            }
+                        } else if(target.nodeType) {
+                            parent[insertMethod](target, src);
+                        }
+                    } else {
+                        element.insertAdjacentHTML(method, elementsHTML);
+                    }
+                });
+            },
+
             _each = function(target, callback) {
                 if(!target.length) return;
                 for(var i = 0; i < target.length; i++){
@@ -142,8 +189,6 @@
                 }
                 return displayCache[nodeName];
             };
-
-        function F(){}
 
         Easy.prototype = Easy.fn = {
             constructor: Easy,
@@ -432,7 +477,7 @@
                 }, name, value);
             },
 
-            // getAttribute is faster than dataset 
+            // getAttribute is faster than dataset
             // http://jsperf.com/domdata-dataset-get
             data: function(name, value) {
                 return this.attr('data-' + _dasherize(name), value);
@@ -480,66 +525,36 @@
                 }, 'innerHTML', value);
             },
 
-            append: function(target) {
-                var value;
-                if(typeof target !== 'string'){
-                    value = _getHTML(target);
-                } else {
-                    value = target;
-                }
-                return this.each(function(element, index){
-                    var i, l;
-                    if(!index && typeof target !== 'string'){
-                        if('length' in target){
-                            for(i = 0, l = target.length; i < l; i++){
-                                element.appendChild(target[i]);
-                            }
-                        } else if(target.nodeType) {
-                            element.appendChild(target);
-                        }
-                    } else {
-                        element.insertAdjacentHTML('beforeend', value);
-                    }
-                });
+            after: function(target) {
+                return _insert(target, 'afterend', this);
             },
 
-            appendTo: function(value) { // TODO: test case
-                if(Easy.isEasy(value)){
-                    value.append(this);
+            append: function(target) {
+                return _insert(target, 'beforeend', this);
+            },
+
+            appendTo: function(target) {
+                if(Easy.isEasy(target)){
+                    target.append(this);
                 } else {
-                    this.constructor(value).append(this);
+                    this.constructor(target).append(this);
                 }
                 return this;
             },
 
-            prepend: function(target) {
-                var value;
-                if(typeof target !== 'string'){
-                    value = _getHTML(target);
-                } else {
-                    value = target;
-                }
-                return this.each(function(element, index){
-                    var i;
-                    if(!index && typeof target !== 'string'){
-                        if('length' in target){
-                            for(i = target.length - 1; i >= 0; i--){
-                                element.insertBefore(target[i], element.firstChild);
-                            }
-                        } else if(target.nodeType) {
-                            element.insertBefore(target, element.firstChild);
-                        }
-                    } else {
-                        element.insertAdjacentHTML('afterbegin', value);
-                    }
-                });
+            before: function(target) {
+                return _insert(target, 'beforebegin', this);
             },
 
-            prependTo: function(value) { // TODO: test case
-                if(Easy.isEasy(value)){
-                    value.prepend(this);
+            prepend: function(target) {
+                return _insert(target, 'afterbegin', this);
+            },
+
+            prependTo: function(target) {
+                if(Easy.isEasy(target)){
+                    target.prepend(this);
                 } else {
-                    this.constructor(value).prepend(this);
+                    this.constructor(target).prepend(this);
                 }
                 return this;
             },
@@ -579,8 +594,6 @@
             hide: function() {
                 return this.css('display', 'none');
             },
-
-            // TODO: append, prepend
 
             // Miscellaneous
             ready: function(fn){
@@ -627,7 +640,7 @@
             return target;
         };
 
-        Easy.extend({
+        Easy.extend({  // TODO: nonConflict
             version: '0.1',
             isEasy: function(obj){
                 return obj instanceof Easy;
@@ -640,9 +653,13 @@
             },
 
             inherit: function(o) {
-                F.prototype = o;
-                return new F();
-            },
+                function F(){}
+
+                return function(){
+                    F.prototype = o;
+                    return new F();
+                };
+            }(),
 
             default: function(target, src) {
                 for(var key in src){
