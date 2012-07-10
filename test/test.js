@@ -68,6 +68,22 @@ window.setupTest = function(){
                 should.not.exist($('#not-exist').get(0));
             });
         });
+        describe('pluck', function(){
+            it('should get all elements\'s give property', function(){
+                var props = $([{prop:1},{prop:2},{prop:3}]).pluck('prop');
+                props.should.be.length(3);
+                props[1].should.be.equal(2);
+            });
+        });
+        describe('each', function(){
+            it('should traverse all elements', function(){
+                var easyObj = $([1,2,3,4]), counter = 0;
+                easyObj.each(function(item){
+                    counter++;
+                });
+                counter.should.be.equal(4);
+            });
+        });
     });
 
     describe('Traversing', function(){
@@ -108,6 +124,29 @@ window.setupTest = function(){
             it('should get the matched parent with selector', function(){
                 $('.inner-class').parents('#test-area').should.be.length(1);
                 $('.inner-class').parents('ruby').should.be.length(2);
+            });
+        });
+
+        describe('first', function(){
+            it('should get the first element', function(){
+                $('.inner-class').first()[0].should.be.equal(document.getElementById('inner-1'));
+                should.not.exist($('.non-existed').first());
+                $([1,2,3]).first().should.be.equal(1);
+            });
+        });
+
+        describe('last', function(){
+            it('should get the last element', function(){
+                $('.inner-class').last()[0].should.be.equal(document.getElementsByClassName('inner-class')[3]);
+                should.not.exist($('.non-existed').last());
+                $([1,2,3]).last().should.be.equal(3);
+            });
+        });
+
+        describe('eq', function(){
+            it('should get the item with the given index', function(){
+                $('.inner-class').eq(2)[0].should.be.equal($('#outer-2 .inner-class').eq(-2)[0]);
+                $('.inner-class').eq(4).should.be.length(0);
             });
         });
 
@@ -193,6 +232,14 @@ window.setupTest = function(){
                 $('#checkbox').attr('checked').should.be.equal('checked');
                 $('#checkbox').attr('class').should.be.equal('checkbox');
             });
+        });
+        describe('removeAttr', function(){
+            it('should remove attribute', function(){
+                $('#outer-1').attr('abc', 'a').attr('abc').should.be.equal('a');
+                should.not.exist($('#outer-1').removeAttr('abc').attr('abc'));
+            });
+        });
+        describe('prop', function(){
             it('should get and set property', function(){
                 $('#checkbox').prop('checked').should.be.true;
                 $('#checkbox')[0].checked = false;
@@ -206,6 +253,18 @@ window.setupTest = function(){
                 $('#checkbox').data('uniqueID', '444').attr('data-unique-id').should.be.equal('444');
                 $('#checkbox').data('uniqueName', 'easy').attr('data-unique-name').should.be.equal('easy');
                 $('#checkbox').data('feature', 'fast').attr('data-feature').should.be.equal('fast');
+            });
+        });
+        describe('empty', function(){
+            it('should empty the element', function(){
+                $('#test-area').empty().html().should.be.equal('');
+            });
+        });
+        describe('remove', function(){
+            it('should remove the element', function(){
+                document.getElementsByClassName('inner-class').should.be.length(4);
+                $('.inner-class').remove();
+                document.getElementsByClassName('inner-class').should.be.length(0);
             });
         });
         describe('text', function(){
@@ -268,8 +327,8 @@ window.setupTest = function(){
                 var a = $('#outer-2');
                 a.appendTo('.inner-class');
                 a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
+                a.prev().first().text().should.be.equal('hello');
             });
-
         });
         describe('before', function(){
             it('should prepend node element after the element', function(){
@@ -300,6 +359,15 @@ window.setupTest = function(){
             it('should prepend string content', function(){
                 $('#inner-1').prepend('abc<i>prepend string content</i>').html().should.be.equal('abc<i>prepend string content</i><i>hello</i>');
             });
+        });
+        describe('prependTo', function(){
+            it('should reserve the original nodes and clone for the other', function(){
+                var a = $('#outer-2');
+                a.prependTo('.inner-class');
+                a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
+                a.next().first().text().should.be.equal('hello');
+            });
+
         });
         describe('val', function(){
             it('should get and set value', function(){
@@ -505,6 +573,86 @@ window.setupTest = function(){
                     type.should.be.equal('Internal Error');
                     done();
                 });
+            });
+        });
+    });
+
+    describe('Helper', function(){
+        describe('isEasy', function(){
+            it('should return if it\'s an Easy Object', function() {
+                $.isEasy($()).should.be.true;
+                $.isEasy($('body')).should.be.true;
+                $.isEasy({}).should.be.false;
+                $.isEasy(1).should.be.false;
+            });
+        });
+        describe('isObject', function(){
+            it('should return if it\'s an Object', function() {
+                $.isObject($()).should.be.true;
+                $.isObject({}).should.be.true;
+                $.isObject([]).should.be.true;
+                $.isObject(1).should.be.false;
+            });
+        });
+        describe('isFunction', function(){
+            it('should return if it\'s a function', function() {
+                $.isFunction($()).should.be.false;
+                $.isFunction(function() {}).should.be.true;
+                $.isFunction({}).should.be.false;
+            });
+        });
+        describe('isArray', function(){
+            it('should return if it\'s an array', function() {
+                $.isArray($()).should.be.false;
+                $.isArray([]).should.be.true;
+                $.isArray(arguments).should.be.false;
+            });
+        });
+        describe('inherit', function(){
+            it('should return the object which is inherited the given object', function() {
+                var parent = {a:1}, obj = $.inherit(parent);
+                obj.a.should.be.equal(1);
+                obj.a = 2;
+                obj.a.should.be.equal(2);
+                parent.a.should.be.equal(1);
+            });
+        });
+        describe('extend', function(){
+            it('should return an object, which is the first object extend by the second object', function() {
+                var first = {a:1}, second = {a:2,b:3}, obj = $.extend(first, second);;
+                
+                obj.a.should.be.equal(2);
+                obj.b = 3;
+            });
+        });
+        describe('default', function(){
+            it('should return an object, which is the first object merged the second object', function() {
+                var first = {a:1}, second = {a:2,b:3}, obj = $.default(first, second);;
+                
+                obj.a.should.be.equal(1);
+                obj.b = 3;
+            });
+        });
+        describe('merge', function(){
+            it('should return an Easy Object which is merged result of the two param Easy Object', function() {
+                var first = $('#inner-1').add('#outer-1'), second = $('.inner-class'), obj = $.merge(first, second);;
+                
+                obj.should.be.length(5);
+            });
+        });
+        describe('escape', function(){
+            it('should return the escaped string', function() {
+                $.escape('<script></script>').should.be.equal('&lt;script&gt;&lt;&#x2F;script&gt;');
+            });
+        });
+        describe('template', function(){
+            it('should return the template string', function() {
+                var temp = $.template('<% for(var i = 0; i < items.length; i++){%><li><%= items[i] %></li><% }%>');
+                temp({items:['a','b','c']}).should.be.equal('<li>a</li><li>b</li><li>c</li>');
+            });
+            it('should return the escaped template string', function() {
+                var temp = $.template('<% for(var i = 0; i < items.length; i++){%><li><%- items[i] %></li><% }%>');
+                temp({items:['<script>a','<b>']}).should.be.equal('<li>&lt;script&gt;a</li><li>&lt;b&gt;</li>');
             });
         });
     });

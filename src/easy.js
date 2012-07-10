@@ -294,6 +294,22 @@
                 return result;
             },
 
+            first: function(){
+                var el = this[0];
+                return _isObject(el) ? this.constructor(this[0]) : el;
+            },
+
+            last: function() {
+                var el = this[this.length - 1];
+                return _isObject(el) ? this.constructor(el) : el;
+            },
+
+            eq: function(index) {
+                index = index < 0 ? (this.length + index) : index;
+                var el  = this[index];
+                return _isObject ? this.constructor(el) : el;
+            },
+
             closest: function(selector, context) {
                 var node = this[0];
 
@@ -652,10 +668,10 @@
                 return origToString.call(value) === '[object Array]';
             },
 
-            inherit: function(o) {
+            inherit: function() {
                 function F(){}
 
-                return function(){
+                return function(o){
                     F.prototype = o;
                     return new F();
                 };
