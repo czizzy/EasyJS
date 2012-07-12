@@ -318,7 +318,7 @@ window.setupTest = function(){
             it('should reserve the original nodes and clone for the other', function(){
                 var a = $('#outer-2');
                 $('.inner-class').append(a);
-                a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
+                a[0].parentNode.should.be.equal(document.getElementById('inner-1'));
             });
 
         });
@@ -326,7 +326,7 @@ window.setupTest = function(){
             it('should reserve the original nodes and clone for the other', function(){
                 var a = $('#outer-2');
                 a.appendTo('.inner-class');
-                a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
+                a[0].parentNode.should.be.equal(document.getElementById('inner-1'));
                 a.prev().first().text().should.be.equal('hello');
             });
         });
@@ -364,7 +364,7 @@ window.setupTest = function(){
             it('should reserve the original nodes and clone for the other', function(){
                 var a = $('#outer-2');
                 a.prependTo('.inner-class');
-                a[0].parentNode.should.be.equal(document.getElementById('inner-1')); 
+                a[0].parentNode.should.be.equal(document.getElementById('inner-1'));
                 a.next().first().text().should.be.equal('hello');
             });
 
@@ -399,7 +399,7 @@ window.setupTest = function(){
         });
         describe('ajax', function(){
             it('should send xhr and reveive correct value with get', function(done){
-                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
+                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', {
                     success: function(res){
                         res.guid.should.be.equal('09CDE73AE4F51084');
                         done();
@@ -407,7 +407,7 @@ window.setupTest = function(){
                 });
             });
             it('should send xhr and reveive correct value with get', function(done){
-                $.ajax('http://api.jiepang.com/locations/show', { 
+                $.ajax('http://api.jiepang.com/locations/show', {
                     data: {guid: '09CDE73AE4F51084', apiver: 5},
                     success: function(res){
                         res.guid.should.be.equal('09CDE73AE4F51084');
@@ -416,7 +416,7 @@ window.setupTest = function(){
                 });
             });
             it('should send xhr and reveive correct value with post', function(done){
-                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', { 
+                $.ajax('http://api.jiepang.com/locations/show?guid=09CDE73AE4F51084&apiver=5', {
                     type: 'post',
                     success: function(res){
                         res.guid.should.be.equal('09CDE73AE4F51084');
@@ -425,7 +425,7 @@ window.setupTest = function(){
                 });
             });
             it('should send xhr and reveive correct value with post', function(done){
-                $.ajax('http://api.jiepang.com/locations/show', { 
+                $.ajax('http://api.jiepang.com/locations/show', {
                     type: 'post',
                     data: {guid: '09CDE73AE4F51084', apiver: 5},
                     success: function(res){
@@ -556,7 +556,7 @@ window.setupTest = function(){
                 });
                 deffer.reject('error');
             });
-            
+
         });
         describe('when', function(){
             it('should emit "done" when all the deffered object is resolved', function(done) {
@@ -577,6 +577,34 @@ window.setupTest = function(){
         });
     });
 
+    describe('Animation', function(){
+        describe('animate', function(){
+            it('should trigger the correct end event', function(done) {
+                $('#mocha').animate({color: 'green'}, 600, 'linear', function(e){
+                    e.propertyName.should.be.equal('color');
+                    done();
+                });
+            });
+            it('should trigger the correct end event', function(done) {
+                $('#mocha').animate({background: 'black'}, 'linear', function(e){
+                    e.propertyName.should.be.equal('background');
+                    done();
+                });
+            });
+            it('should trigger the correct end event', function(done) {
+                $('#mocha').animate({opacity: 0.9}, 600, function(e){
+                    e.propertyName.should.be.equal('opacity');
+                    done();
+                });
+            });
+            it('should trigger the correct end event', function(done) {
+                $('#mocha').animate({'padding': '100'}, function(e){
+                    e.propertyName.should.be.equal('padding');
+                    done();
+                });
+            });
+        });
+    });
     describe('Helper', function(){
         describe('isEasy', function(){
             it('should return if it\'s an Easy Object', function() {
@@ -620,7 +648,7 @@ window.setupTest = function(){
         describe('extend', function(){
             it('should return an object, which is the first object extend by the second object', function() {
                 var first = {a:1}, second = {a:2,b:3}, obj = $.extend(first, second);;
-                
+
                 obj.a.should.be.equal(2);
                 obj.b = 3;
             });
@@ -628,7 +656,7 @@ window.setupTest = function(){
         describe('default', function(){
             it('should return an object, which is the first object merged the second object', function() {
                 var first = {a:1}, second = {a:2,b:3}, obj = $.default(first, second);;
-                
+
                 obj.a.should.be.equal(1);
                 obj.b = 3;
             });
@@ -636,8 +664,24 @@ window.setupTest = function(){
         describe('merge', function(){
             it('should return an Easy Object which is merged result of the two param Easy Object', function() {
                 var first = $('#inner-1').add('#outer-1'), second = $('.inner-class'), obj = $.merge(first, second);;
-                
+
                 obj.should.be.length(5);
+            });
+        });
+        describe('each', function(){
+            it('should traverse all elements', function(){
+                var array = [1,2,3,4], counter = 0;
+                $.each(array, function(item){
+                    counter++;
+                });
+                counter.should.be.equal(4);
+            });
+            it('should traverse all keys of an object', function(){
+                var obj = {a:1, b:2, c: 2}, counter = 0;
+                $.each(obj, function(item){
+                    counter++;
+                });
+                counter.should.be.equal(3);
             });
         });
         describe('escape', function(){

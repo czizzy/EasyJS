@@ -161,9 +161,14 @@
             },
 
             _each = function(target, callback) {
-                if(!target.length) return;
-                for(var i = 0; i < target.length; i++){
-                    if(callback.call(target[i], target[i], i, target) === false) return target;
+                if('length' in target) {
+                    for(var i = 0; i < target.length; i++){
+                        if(callback.call(target[i], target[i], i, target) === false) return target;
+                    }
+                } else {
+                    for(var k in target) {
+                        if(callback.call(target[k], target[k], k, target) === false) return target;
+                    }
                 }
                 return target;
             },

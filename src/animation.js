@@ -1,14 +1,8 @@
 'use strict';
 (function($){
     function buildTransitionText(properties, duration, easing, complete){
-        var match = /^(\d+)/.exec(duration), postfix, textArr = [];
-        if(match) {
-            duration = match[1];
-        } else {
-            duration = durations[duration] || 400;
-        }
+        var postfix, textArr = [];
         duration = duration/1000 + 's';
-        (typeof easing === 'string') || (easing = 'ease');
         postfix = ' ' + duration + ' ' + easing;
         for(var key in properties) {
             textArr.push(key + postfix);
@@ -18,19 +12,41 @@
     var durations  = {
         fast: 200,
         slow: 600
-    };
+    },
+        vendors = {Webkit: 'webkit', Moz: '', O: 'o', ms: 'MS'},
+        testEl = document.createElement('div'),
+        prefix,
+        event;
+
+    $.each(vendors, function(eventPrefix, vendor) {
+        if(testEl.style[vendor + 'Transition'] !== undefined) {
+            prefix = '-' + vendor.toLowerCase() + '-';
+            event = eventPrefix + 'TransitionEnd';
+            return false;
+        }
+    });
     $.fn.extend({
         animate: function(properties, duration, easing, complete){
-            var transitionText = buildTransitionText(properties, duration, easing), 
-                self = this,
+            var self = this,
+                transitionText,
                 wrapper;
-            properties['-webkit-transition'] = transitionText;
+            if(typeof duration !== 'number') {
+                complete = easing;
+                easing = duration;
+                duration = 400;
+            }
+            if($.isFunction(easing)){
+                complete = easing;
+                easing = 'ease';
+            }
+            transitionText = buildTransitionText(properties, duration, easing);
+            properties[prefix + 'transition'] = transitionText;
             if(typeof complete === 'function') {
                 wrapper = function(e) {
                     complete.call(this, e);
-                    self.unbind('webkitTransitionEnd');
+                    self.unbind(event, wrapper);
                 };
-                this.bind('webkitTransitionEnd', wrapper);
+                this.bind(event, wrapper);
             }
             return this.css(properties);
         }
