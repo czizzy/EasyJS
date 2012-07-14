@@ -21,7 +21,7 @@
     $.each(vendors, function(eventPrefix, vendor) {
         if(testEl.style[vendor + 'Transition'] !== undefined) {
             prefix = '-' + vendor.toLowerCase() + '-';
-            event = eventPrefix + 'TransitionEnd';
+            event = eventPrefix? (eventPrefix + 'TransitionEnd') : 'transitionend';
             return false;
         }
     });
@@ -29,26 +29,36 @@
         animate: function(properties, duration, easing, complete){
             var self = this,
                 transitionText,
-                wrapper;
+                wrapper,
+                defferFunc;
             if(typeof duration !== 'number') {
                 complete = easing;
                 easing = duration;
                 duration = 400;
             }
-            if($.isFunction(easing)){
+            if($.isFunction(easing) || easing == undefined){
                 complete = easing;
                 easing = 'ease';
             }
             transitionText = buildTransitionText(properties, duration, easing);
             properties[prefix + 'transition'] = transitionText;
-            if(typeof complete === 'function') {
+
+            defferFunc = function(deffered){
+                if(typeof complete === 'function') {
+                    deffered.done(function(e){
+                        complete.call(this, e);  
+                    });
+                }
                 wrapper = function(e) {
-                    complete.call(this, e);
+                    deffered.resolveWith(self, e);
                     self.unbind(event, wrapper);
                 };
-                this.bind(event, wrapper);
+                self.bind(event, wrapper);
+                self.css(properties);
             }
-            return this.css(properties);
+            if(!this.queue) this.queue = $.Queue();
+            this.queue.add(defferFunc);
+            return this;
         }
     });
 })(Easy);

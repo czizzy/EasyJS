@@ -654,9 +654,7 @@
                 target = this;
             }
             for(var key in source){
-                if(source.hasOwnProperty(key)){
-                    target[key] = source[key];
-                }
+                target[key] = source[key];
             }
             return target;
         };

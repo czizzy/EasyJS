@@ -81,6 +81,7 @@
                 }
                 return promise;
             };
+
             initFunc && initFunc.call(deffered, deffered);
             return deffered;
         },
@@ -113,6 +114,31 @@
                 deffer = $.Deffered();
                 return deffer.promise();
             }
+        },
+
+        Queue: function(){  // TODO: need dequeue and remove
+            var queue = [], isRunning = false;
+            function resolveFunc(){
+                var deffered;
+                if(!queue.length) {
+                    isRunning = false;
+                } else {
+                    deffered = $.Deffered(queue.shift());
+                    deffered.always(resolveFunc);
+                }
+                
+            }
+            return {
+                add: function(func){
+                    var deffered;
+                    queue.push(func);
+                    if(!isRunning){
+                        isRunning = true;
+                        deffered = $.Deffered(queue.shift());
+                        deffered.always(resolveFunc);
+                    }
+                }
+            };
         }
     });
 

@@ -5,7 +5,7 @@ window.setupTest = function(){
     mocha.setup({
         ui: 'bdd',
         globals: [],
-        timeout: 2500,
+        timeout: 5000,
         ignoreLeaks: true
     });
     beforeEach(function(){
@@ -575,34 +575,63 @@ window.setupTest = function(){
                 });
             });
         });
+        describe('Queue', function(){
+            it('should emit "done" in order', function(done) {
+                var queue = $.Queue();
+                queue.add(function(deffered){
+                    setTimeout(function(){
+                        deffered.resolve(1);
+                    }, 2000);
+                    deffered.done(function(args){
+                        console.log(args);
+                    })
+                });
+                queue.add(function(deffered){
+                    setTimeout(function(){
+                        deffered.resolve(2);
+                    }, 1000);
+                    deffered.done(function(args){
+                        console.log(args);
+                        done();
+                    })
+                });
+            });
+        });
     });
 
     describe('Animation', function(){
         describe('animate', function(){
             it('should trigger the correct end event', function(done) {
-                $('#mocha').animate({color: 'green'}, 600, 'linear', function(e){
+                $('#animation-1').animate({color: 'green'}, 600, 'linear', function(e){
                     e.propertyName.should.be.equal('color');
                     done();
                 });
             });
             it('should trigger the correct end event', function(done) {
-                $('#mocha').animate({background: 'black'}, 'linear', function(e){
-                    e.propertyName.should.be.equal('background');
+                $('#animation-1').animate({'background-color': 'black'}, 'linear', function(e){
+                    e.propertyName.should.be.equal('background-color');
                     done();
                 });
             });
             it('should trigger the correct end event', function(done) {
-                $('#mocha').animate({opacity: 0.9}, 600, function(e){
+                $('#animation-1').animate({opacity: 0.9}, 600, function(e){
                     e.propertyName.should.be.equal('opacity');
                     done();
                 });
             });
             it('should trigger the correct end event', function(done) {
-                $('#mocha').animate({'padding': '100'}, function(e){
-                    e.propertyName.should.be.equal('padding');
+                $('#animation-1').animate({'padding-left': '100'}, function(e){
+                    e.propertyName.should.be.equal('padding-left');
                     done();
                 });
             });
+        });
+        describe('animation queue', function(){
+            it('should queue the animations', function(done) {
+                $('#animation-2').animate({'top': '100'}, 2000).animate({'left':'100'}).animate({'opacity': '0'});
+                done();
+            });
+
         });
     });
     describe('Helper', function(){
@@ -650,15 +679,15 @@ window.setupTest = function(){
                 var first = {a:1}, second = {a:2,b:3}, obj = $.extend(first, second);;
 
                 obj.a.should.be.equal(2);
-                obj.b = 3;
+                obj.b.should.be.equal(3);
             });
         });
         describe('default', function(){
             it('should return an object, which is the first object merged the second object', function() {
-                var first = {a:1}, second = {a:2,b:3}, obj = $.default(first, second);;
+                var first = {a:1}, second = {a:2,b:3}, obj = $.default(first, second);
 
                 obj.a.should.be.equal(1);
-                obj.b = 3;
+                obj.b.should.be.equal(3);
             });
         });
         describe('merge', function(){
