@@ -1,4 +1,3 @@
-'use strict';
 (function($){
     var rhtml = /^text\/html/,
         rjson = /^application\/json/,

@@ -1,4 +1,3 @@
-'use strict';
 (function($){
     function buildTransitionText(properties, duration, easing, complete){
         var postfix, textArr = [];
@@ -9,7 +8,7 @@
         }
         return textArr.join(',') + ';';
     }
-    var durations  = {
+    var speed = {
         fast: 200,
         slow: 600
     },
@@ -31,6 +30,7 @@
                 transitionText,
                 wrapper,
                 defferFunc;
+            duration = speed[duration] || duration;
             if(typeof duration !== 'number') {
                 complete = easing;
                 easing = duration;
@@ -54,11 +54,26 @@
                     self.unbind(event, wrapper);
                 };
                 self.bind(event, wrapper);
-                self.css(properties);
+                setTimeout(function(){  // if modified css consecutive, the last one work
+                    self.css(properties);
+                }, 0);
             }
             if(!this.queue) this.queue = $.Queue();
             this.queue.add(defferFunc);
             return this;
+        },
+
+        fadeIn: function(duration, callback){
+            return this.css({opacity: 0}).show().animate({opacity: 1}, duration, 'linear', callback);
+        },
+
+        fadeOut: function(duration, callback){
+            var self = this;
+            return this.animate({opacity: 0}, duration, 'linear', function(e){
+                self.hide();
+                callback.call(this, e);
+            });
         }
+
     });
 })(Easy);

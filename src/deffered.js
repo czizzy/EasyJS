@@ -1,4 +1,3 @@
-'use strict';
 (function($){
     var origSlice = Array.prototype.slice;
     $.extend({

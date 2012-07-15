@@ -602,7 +602,7 @@ window.setupTest = function(){
     describe('Animation', function(){
         describe('animate', function(){
             it('should trigger the correct end event', function(done) {
-                $('#animation-1').animate({color: 'green'}, 600, 'linear', function(e){
+                $('#animation-1').animate({color: 'green'}, 'fast', 'linear', function(e){
                     e.propertyName.should.be.equal('color');
                     done();
                 });
@@ -628,10 +628,23 @@ window.setupTest = function(){
         });
         describe('animation queue', function(){
             it('should queue the animations', function(done) {
-                $('#animation-2').animate({'top': '100'}, 2000).animate({'left':'100'}).animate({'opacity': '0'});
+                $('#animation-2').animate({'top': '100'}, 2000).animate({'left':'100'}, 'slow').animate({'opacity': '0'});
                 done();
             });
-
+        });
+        describe('fadeIn', function(){
+            it('should let the element fadeIn', function(done) {
+                $('#animation-3').fadeIn(2000, function(){
+                    done();
+                });
+            });
+        });
+        describe('fadeOut', function(){
+            it('should let the element fadeOut', function(done) {
+                $('#animation-3').fadeOut(2000, function(){
+                    done();
+                });
+            });
         });
     });
     describe('Helper', function(){

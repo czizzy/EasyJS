@@ -1,4 +1,3 @@
-'use strict';
 (function($) {
     var handlers = {}, _eid = 1, specialEvents = {},
         eventMethods = ['preventDefault', 'stopImmediatePropagation', 'stopPropagation'];
