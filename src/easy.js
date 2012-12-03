@@ -648,18 +648,18 @@
 
         Easy.fn.init.prototype = Easy.fn;
 
-        var extend = Easy.extend = Easy.fn.extend = function(target, source) {
-            if(source === undefined) {
-                source = target;
-                target = this;
-            }
+        var extend = Easy.extend = function(target, source) {
+            // if(source === undefined) {
+            //     source = target;
+            //     target = this;
+            // }
             for(var key in source){
                 target[key] = source[key];
             }
             return target;
         };
 
-        Easy.extend({  // TODO: nonConflict
+        Easy.extend(Easy, {  // TODO: nonConflict
             version: '0.1',
             isEasy: function(obj){
                 return obj instanceof Easy;

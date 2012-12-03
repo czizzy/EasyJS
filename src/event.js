@@ -47,7 +47,7 @@
         return event;
     };
 
-    $.fn.extend({
+    $.extend($.fn, {
         bind: function(event, fn){
             return this.each(function(element){
                 add(element, event, fn);

@@ -24,7 +24,7 @@
             return false;
         }
     });
-    $.fn.extend({
+    $.extend($.fn, {
         animate: function(properties, duration, easing, complete){
             var self = this,
                 transitionText,

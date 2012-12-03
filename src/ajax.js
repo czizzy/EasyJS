@@ -32,7 +32,7 @@
         return (url + '&' + query).replace(/[&?]{1,2}/, '?');
     }
 
-    $.extend({
+    $.extend($, {
         ajax: function(url, options) {
             var headers = {},
                 xhr = new XMLHttpRequest(),

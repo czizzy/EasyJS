@@ -1,6 +1,6 @@
 (function($){
     var origSlice = Array.prototype.slice;
-    $.extend({
+    $.extend($, {
         Deffered: function(initFunc){
             var resolved = false,
                 rejected = false,
