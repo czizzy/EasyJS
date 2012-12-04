@@ -678,15 +678,15 @@ window.setupTest = function(){
                 $.isArray(arguments).should.be.false;
             });
         });
-        describe('inherit', function(){
-            it('should return the object which is inherited the given object', function() {
-                var parent = {a:1}, obj = $.inherit(parent);
-                obj.a.should.be.equal(1);
-                obj.a = 2;
-                obj.a.should.be.equal(2);
-                parent.a.should.be.equal(1);
-            });
-        });
+        // describe('inherit', function(){
+        //     it('should return the object which is inherited the given object', function() {
+        //         var parent = {a:1}, obj = $.inherit(parent);
+        //         obj.a.should.be.equal(1);
+        //         obj.a = 2;
+        //         obj.a.should.be.equal(2);
+        //         parent.a.should.be.equal(1);
+        //     });
+        // });
         describe('extend', function(){
             it('should return an object, which is the first object extend by the second object', function() {
                 var first = {a:1}, second = {a:2,b:3}, obj = $.extend(first, second);;

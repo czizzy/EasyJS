@@ -1,6 +1,5 @@
 var fs = require('fs'),
-    sys = require('sys'),
-    uglify = require('uglify-js');
+    sys = require('sys');
 
 desc('This is the default build task.');
 task('default', function (params) {
@@ -21,6 +20,7 @@ task('default', function (params) {
 });
 
 task('minify', ['default'], function(params) {
+    var uglify = require('uglify-js');
     var originFile = fs.readFileSync('easy.js').toString(),
         ast = uglify.parser.parse(originFile),
         out = fs.openSync('easy.min.js', 'w+');

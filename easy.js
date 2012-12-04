@@ -648,18 +648,18 @@
 
         Easy.fn.init.prototype = Easy.fn;
 
-        var extend = Easy.extend = Easy.fn.extend = function(target, source) {
-            if(source === undefined) {
-                source = target;
-                target = this;
-            }
+        var extend = Easy.extend = function(target, source) {
+            // if(source === undefined) {
+            //     source = target;
+            //     target = this;
+            // }
             for(var key in source){
                 target[key] = source[key];
             }
             return target;
         };
 
-        Easy.extend({  // TODO: nonConflict
+        Easy.extend(Easy, {  // TODO: nonConflict
             version: '0.1',
             isEasy: function(obj){
                 return obj instanceof Easy;
@@ -670,15 +670,6 @@
             isArray: Array.isArray || function(value) {
                 return origToString.call(value) === '[object Array]';
             },
-
-            inherit: function() {
-                function F(){}
-
-                return function(o){
-                    F.prototype = o;
-                    return new F();
-                };
-            }(),
 
             default: function(target, src) {
                 for(var key in src){
@@ -728,327 +719,6 @@
         });
     }
 })(window);
-(function($) {
-    var handlers = {}, _eid = 1, specialEvents = {},
-        eventMethods = ['preventDefault', 'stopImmediatePropagation', 'stopPropagation'];
-    specialEvents.click = specialEvents.mousedown = specialEvents.mouseup = specialEvents.mousemove = 'MouseEvents';
-
-    function eid(element) {
-        return element._eid || (element._eid = _eid++);
-    }
-
-    function getHandlers(element, event, fn, selector){
-        var element_eid = eid(element);
-        return (handlers[element_eid] || []).filter(function(handler){
-            return handler && (handler.event == event) && (!selector || selector === handler.selector) && (!fn || fn === handler || fn === handler.originalHandler);
-        });
-    }
-
-    function add(element, event, fn, selector) {
-        var element_eid = eid(element);
-        fn.event = event;
-        fn.selector = selector;
-        (handlers[element_eid] || (handlers[element_eid] = [])).push(fn);
-        element.addEventListener(event, fn);
-    }
-
-    function remove(element, event, fn, selector) {
-        var elementHandlers = handlers[eid(element)];
-        getHandlers(element, event, fn, selector).forEach(function(handler) {
-            elementHandlers.splice(elementHandlers.indexOf(handler), 1);
-            element.removeEventListener(handler.event, handler);
-        });
-    }
-
-    function createProxy(event){
-        var proxy = $.extend({originalEvent: event}, event);
-        eventMethods.forEach(function(method){
-            proxy[method] = function(){
-                return event[method].apply(event, arguments);
-            };
-        });
-        return proxy;
-    }
-
-    $.Event = function(type, options) {
-        var event = document.createEvent(specialEvents[type] || 'Events'),
-            bubbles = options?(!!options.bubbles) : true;
-        event.initEvent(type, bubbles, true, null, null, null, null, null, null, null, null, null, null, null, null);
-        return event;
-    };
-
-    $.fn.extend({
-        bind: function(event, fn){
-            return this.each(function(element){
-                add(element, event, fn);
-            });
-        },
-        
-        unbind: function(event, fn) {
-            return this.each(function(element) {
-                remove(element, event, fn);
-            });
-        },
-
-        trigger: function(type) {    // TODO: plain object
-            var event = $.Event(type);
-            return this.each(function(element) {
-                element.dispatchEvent(event);
-            });
-        },
-
-        delegate: function(event, selector, fn) {
-            return this.each(function(element){
-                var wrapper = function(e) {
-                    var event, match;
-                    if(match = $(e.target).closest(selector, element)[0]){
-		                // use custom Event rather than the (read-only) native event
-                        event = createProxy(e);
-                        event.currentTarget = match;
-                        return fn.call(match, event);
-                    }
-                };
-                wrapper.originalHandler = fn;
-                add(element, event, wrapper, selector);
-            });
-        },
-
-        undelegate: function(event, selector, fn) {
-            return this.each(function(element) {
-                remove(element, event, fn, selector);
-            });
-        }
-
-        // TODO: on and off
-    });
-
-    ['focusin', 'focusout', 'load', 'resize', 'scroll', 'unload', 'click', 'dblclick', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'change', 'select', 'keydown', 'keypress', 'keyup', 'error'].forEach(function(event) {
-        $.fn[event] = function(callback){ return this.bind(event, callback); };
-    });
-})(Easy);
-(function($){
-    function buildTransitionText(properties, duration, easing, complete){
-        var postfix, textArr = [];
-        duration = duration/1000 + 's';
-        postfix = ' ' + duration + ' ' + easing;
-        for(var key in properties) {
-            textArr.push(key + postfix);
-        }
-        return textArr.join(',') + ';';
-    }
-    var speed = {
-        fast: 200,
-        slow: 600
-    },
-        vendors = {Webkit: 'webkit', Moz: '', O: 'o', ms: 'MS'},
-        testEl = document.createElement('div'),
-        prefix,
-        event;
-
-    $.each(vendors, function(eventPrefix, vendor) {
-        if(testEl.style[vendor + 'Transition'] !== undefined) {
-            prefix = '-' + vendor.toLowerCase() + '-';
-            event = eventPrefix? (eventPrefix + 'TransitionEnd') : 'transitionend';
-            return false;
-        }
-    });
-    $.fn.extend({
-        animate: function(properties, duration, easing, complete){
-            var self = this,
-                transitionText,
-                wrapper,
-                defferFunc;
-            duration = speed[duration] || duration;
-            if(typeof duration !== 'number') {
-                complete = easing;
-                easing = duration;
-                duration = 400;
-            }
-            if($.isFunction(easing) || easing == undefined){
-                complete = easing;
-                easing = 'ease';
-            }
-            transitionText = buildTransitionText(properties, duration, easing);
-            properties[prefix + 'transition'] = transitionText;
-
-            defferFunc = function(deffered){
-                if(typeof complete === 'function') {
-                    deffered.done(function(e){
-                        complete.call(this, e);  
-                    });
-                }
-                wrapper = function(e) {
-                    deffered.resolveWith(self, e);
-                    self.unbind(event, wrapper);
-                };
-                self.bind(event, wrapper);
-                setTimeout(function(){  // if modified css consecutive, the last one work
-                    self.css(properties);
-                }, 0);
-            }
-            if(!this.queue) this.queue = $.Queue();
-            this.queue.add(defferFunc);
-            return this;
-        },
-
-        fadeIn: function(duration, callback){
-            return this.css({opacity: 0}).show().animate({opacity: 1}, duration, 'linear', callback);
-        },
-
-        fadeOut: function(duration, callback){
-            var self = this;
-            return this.animate({opacity: 0}, duration, 'linear', function(e){
-                self.hide();
-                callback.call(this, e);
-            });
-        }
-
-    });
-})(Easy);
-(function($){
-    var origSlice = Array.prototype.slice;
-    $.extend({
-        Deffered: function(initFunc){
-            var resolved = false,
-                rejected = false,
-                value,
-                error,
-                callbacks,
-                errCallbacks,
-                promise = {
-                    then: function(successCallback, errorCallback){
-                        if(resolved){
-                            successCallback && successCallback.apply(this, value);
-                        } else if(rejected){
-                            errorCallback && errorCallback.apply(this, error);
-                        } else {
-                            successCallback && (callbacks || (callbacks = [])).push(successCallback);
-                            errorCallback && (errCallbacks || (errCallbacks = [])).push(errorCallback);
-                        }
-                        return this;
-                    },
-                    always: function(callback){
-                        return this.then(callback, callback);
-                    },
-                    done: function(callback){
-                        return this.then(callback);
-                    },
-                    fail: function(callback){
-                        return this.then(null, callback);
-                    },
-                    isResolved: function(){
-                        return resolved;
-                    },
-                    isRejected: function(){
-                        return rejected;
-                    },
-                    promise: function(){
-                        return this;
-                    }
-                },
-                deffered = $.inherit(promise);
-            deffered.resolveWith = function(context){
-                var args = origSlice.call(arguments, 1);
-                if(!resolved && !rejected){
-                    resolved = true;
-                    value = args;
-                    if(callbacks){
-                        callbacks.forEach(function(callback){
-                            callback.apply(context, value);
-                        });
-                    }
-                }
-            };
-            deffered.resolve = function(){
-                var args = origSlice.call(arguments, 0);
-                args.unshift(this);
-                return deffered.resolveWith.apply(this, args);
-            };
-            deffered.rejectWith = function(context){
-                var args = origSlice.call(arguments, 1);
-                if(!rejected && !resolved){
-                    rejected = true;
-                    error = args;
-                    if(errCallbacks){
-                        errCallbacks.forEach(function(callback){
-                            callback.apply(context, error);
-                        });
-                    }
-                }
-            };
-            deffered.reject = function(){
-                var args = origSlice.call(arguments, 0);
-                args.unshift(this);
-                return deffered.rejectWith.apply(this, args);
-            };
-            deffered.promise = function(target){
-                if($.isObject(target)){
-                    return $.extend(target, promise);                    
-                }
-                return promise;
-            };
-
-            initFunc && initFunc.call(deffered, deffered);
-            return deffered;
-        },
-        when: function(first){
-            var deffer, list, resolveFunc, rejectFunc, count = arguments.length, results = Array(count);
-            if(count === 1 && $.isFunction(first.promise)){
-                return first.promise;
-            } else {
-                resolveFunc = function(i){
-                    return function(result){
-                        results.splice(i, 1, result);
-                        count--;
-                        if(!count) {
-                            deffer.resolve.apply(deffer, results);
-                        }
-                    };
-                };
-                rejectFunc = function(){
-                    deffer.reject.apply(deffer, arguments);
-                };
-                list = origSlice.call(arguments, 0);
-                list = list.map(function(item, index){
-                    var isNormal = !item.promise, defferedItem = isNormal?$.Deffered():item;
-                    defferedItem.done(resolveFunc(index)).fail(rejectFunc);
-                    if(isNormal) {
-                        defferedItem.resolve(item);
-                    }
-                    return defferedItem;
-                });
-                deffer = $.Deffered();
-                return deffer.promise();
-            }
-        },
-
-        Queue: function(){  // TODO: need dequeue and remove
-            var queue = [], isRunning = false;
-            function resolveFunc(){
-                var deffered;
-                if(!queue.length) {
-                    isRunning = false;
-                } else {
-                    deffered = $.Deffered(queue.shift());
-                    deffered.always(resolveFunc);
-                }
-                
-            }
-            return {
-                add: function(func){
-                    var deffered;
-                    queue.push(func);
-                    if(!isRunning){
-                        isRunning = true;
-                        deffered = $.Deffered(queue.shift());
-                        deffered.always(resolveFunc);
-                    }
-                }
-            };
-        }
-    });
-
-})(Easy);
 (function($){
     var rhtml = /^text\/html/,
         rjson = /^application\/json/,
@@ -1083,7 +753,7 @@
         return (url + '&' + query).replace(/[&?]{1,2}/, '?');
     }
 
-    $.extend({
+    $.extend($, {
         ajax: function(url, options) {
             var headers = {},
                 xhr = new XMLHttpRequest(),
@@ -1235,5 +905,335 @@
             }
             return params.join('&').replace('%20', '+');
         }
+    });
+})(Easy);
+(function($){
+    function buildTransitionText(properties, duration, easing, complete){
+        var postfix, textArr = [];
+        duration = duration/1000 + 's';
+        postfix = ' ' + duration + ' ' + easing;
+        for(var key in properties) {
+            textArr.push(key + postfix);
+        }
+        return textArr.join(',') + ';';
+    }
+    var speed = {
+        fast: 200,
+        slow: 600
+    },
+        vendors = {Webkit: 'webkit', Moz: '', O: 'o', ms: 'MS'},
+        testEl = document.createElement('div'),
+        prefix,
+        event;
+
+    $.each(vendors, function(eventPrefix, vendor) {
+        if(testEl.style[vendor + 'Transition'] !== undefined) {
+            prefix = '-' + vendor.toLowerCase() + '-';
+            event = eventPrefix? (eventPrefix + 'TransitionEnd') : 'transitionend';
+            return false;
+        }
+    });
+    $.extend($.fn, {
+        animate: function(properties, duration, easing, complete){
+            var self = this,
+                transitionText,
+                wrapper,
+                defferFunc;
+            duration = speed[duration] || duration;
+            if(typeof duration !== 'number') {
+                complete = easing;
+                easing = duration;
+                duration = 400;
+            }
+            if($.isFunction(easing) || easing == undefined){
+                complete = easing;
+                easing = 'ease';
+            }
+            transitionText = buildTransitionText(properties, duration, easing);
+            properties[prefix + 'transition'] = transitionText;
+
+            defferFunc = function(deffered){
+                if(typeof complete === 'function') {
+                    deffered.done(function(e){
+                        complete.call(this, e);  
+                    });
+                }
+                wrapper = function(e) {
+                    deffered.resolveWith(self, e);
+                    self.unbind(event, wrapper);
+                };
+                self.bind(event, wrapper);
+                setTimeout(function(){  // if modified css consecutive, the last one work
+                    self.css(properties);
+                }, 0);
+            }
+            if(!this.queue) this.queue = $.Queue();
+            this.queue.add(defferFunc);
+            return this;
+        },
+
+        fadeIn: function(duration, callback){
+            return this.css({opacity: 0}).show().animate({opacity: 1}, duration, 'linear', callback);
+        },
+
+        fadeOut: function(duration, callback){
+            var self = this;
+            return this.animate({opacity: 0}, duration, 'linear', function(e){
+                self.hide();
+                callback.call(this, e);
+            });
+        }
+
+    });
+})(Easy);
+(function($){
+    var origSlice = Array.prototype.slice,
+        inherit = function() {
+            function F(){}
+
+            return function(o){
+                F.prototype = o;
+                return new F();
+            };
+        }();
+
+    $.extend($, {
+        Deffered: function(initFunc){
+            var resolved = false,
+                rejected = false,
+                value,
+                error,
+                callbacks,
+                errCallbacks,
+                promise = {
+                    then: function(successCallback, errorCallback){
+                        if(resolved){
+                            successCallback && successCallback.apply(this, value);
+                        } else if(rejected){
+                            errorCallback && errorCallback.apply(this, error);
+                        } else {
+                            successCallback && (callbacks || (callbacks = [])).push(successCallback);
+                            errorCallback && (errCallbacks || (errCallbacks = [])).push(errorCallback);
+                        }
+                        return this;
+                    },
+                    always: function(callback){
+                        return this.then(callback, callback);
+                    },
+                    done: function(callback){
+                        return this.then(callback);
+                    },
+                    fail: function(callback){
+                        return this.then(null, callback);
+                    },
+                    isResolved: function(){
+                        return resolved;
+                    },
+                    isRejected: function(){
+                        return rejected;
+                    },
+                    promise: function(){
+                        return this;
+                    }
+                },
+                deffered = inherit(promise);
+            deffered.resolveWith = function(context){
+                var args = origSlice.call(arguments, 1);
+                if(!resolved && !rejected){
+                    resolved = true;
+                    value = args;
+                    if(callbacks){
+                        callbacks.forEach(function(callback){
+                            callback.apply(context, value);
+                        });
+                    }
+                }
+            };
+            deffered.resolve = function(){
+                var args = origSlice.call(arguments, 0);
+                args.unshift(this);
+                return deffered.resolveWith.apply(this, args);
+            };
+            deffered.rejectWith = function(context){
+                var args = origSlice.call(arguments, 1);
+                if(!rejected && !resolved){
+                    rejected = true;
+                    error = args;
+                    if(errCallbacks){
+                        errCallbacks.forEach(function(callback){
+                            callback.apply(context, error);
+                        });
+                    }
+                }
+            };
+            deffered.reject = function(){
+                var args = origSlice.call(arguments, 0);
+                args.unshift(this);
+                return deffered.rejectWith.apply(this, args);
+            };
+            deffered.promise = function(target){
+                if($.isObject(target)){
+                    return $.extend(target, promise);                    
+                }
+                return promise;
+            };
+
+            initFunc && initFunc.call(deffered, deffered);
+            return deffered;
+        },
+        when: function(first){
+            var deffer, list, resolveFunc, rejectFunc, count = arguments.length, results = Array(count);
+            if(count === 1 && $.isFunction(first.promise)){
+                return first.promise;
+            } else {
+                resolveFunc = function(i){
+                    return function(result){
+                        results.splice(i, 1, result);
+                        count--;
+                        if(!count) {
+                            deffer.resolve.apply(deffer, results);
+                        }
+                    };
+                };
+                rejectFunc = function(){
+                    deffer.reject.apply(deffer, arguments);
+                };
+                list = origSlice.call(arguments, 0);
+                list = list.map(function(item, index){
+                    var isNormal = !item.promise, defferedItem = isNormal?$.Deffered():item;
+                    defferedItem.done(resolveFunc(index)).fail(rejectFunc);
+                    if(isNormal) {
+                        defferedItem.resolve(item);
+                    }
+                    return defferedItem;
+                });
+                deffer = $.Deffered();
+                return deffer.promise();
+            }
+        },
+
+        Queue: function(){  // TODO: need dequeue and remove
+            var queue = [], isRunning = false;
+            function resolveFunc(){
+                var deffered;
+                if(!queue.length) {
+                    isRunning = false;
+                } else {
+                    deffered = $.Deffered(queue.shift());
+                    deffered.always(resolveFunc);
+                }
+                
+            }
+            return {
+                add: function(func){
+                    var deffered;
+                    queue.push(func);
+                    if(!isRunning){
+                        isRunning = true;
+                        deffered = $.Deffered(queue.shift());
+                        deffered.always(resolveFunc);
+                    }
+                }
+            };
+        }
+    });
+
+})(Easy);
+(function($) {
+    var handlers = {}, _eid = 1, specialEvents = {},
+        eventMethods = ['preventDefault', 'stopImmediatePropagation', 'stopPropagation'];
+    specialEvents.click = specialEvents.mousedown = specialEvents.mouseup = specialEvents.mousemove = 'MouseEvents';
+
+    function eid(element) {
+        return element._eid || (element._eid = _eid++);
+    }
+
+    function getHandlers(element, event, fn, selector){
+        var element_eid = eid(element);
+        return (handlers[element_eid] || []).filter(function(handler){
+            return handler && (handler.event == event) && (!selector || selector === handler.selector) && (!fn || fn === handler || fn === handler.originalHandler);
+        });
+    }
+
+    function add(element, event, fn, selector) {
+        var element_eid = eid(element);
+        fn.event = event;
+        fn.selector = selector;
+        (handlers[element_eid] || (handlers[element_eid] = [])).push(fn);
+        element.addEventListener(event, fn);
+    }
+
+    function remove(element, event, fn, selector) {
+        var elementHandlers = handlers[eid(element)];
+        getHandlers(element, event, fn, selector).forEach(function(handler) {
+            elementHandlers.splice(elementHandlers.indexOf(handler), 1);
+            element.removeEventListener(handler.event, handler);
+        });
+    }
+
+    function createProxy(event){
+        var proxy = $.extend({originalEvent: event}, event);
+        eventMethods.forEach(function(method){
+            proxy[method] = function(){
+                return event[method].apply(event, arguments);
+            };
+        });
+        return proxy;
+    }
+
+    $.Event = function(type, options) {
+        var event = document.createEvent(specialEvents[type] || 'Events'),
+            bubbles = options?(!!options.bubbles) : true;
+        event.initEvent(type, bubbles, true, null, null, null, null, null, null, null, null, null, null, null, null);
+        return event;
+    };
+
+    $.extend($.fn, {
+        bind: function(event, fn){
+            return this.each(function(element){
+                add(element, event, fn);
+            });
+        },
+        
+        unbind: function(event, fn) {
+            return this.each(function(element) {
+                remove(element, event, fn);
+            });
+        },
+
+        trigger: function(type) {    // TODO: plain object
+            var event = $.Event(type);
+            return this.each(function(element) {
+                element.dispatchEvent(event);
+            });
+        },
+
+        delegate: function(event, selector, fn) {
+            return this.each(function(element){
+                var wrapper = function(e) {
+                    var event, match;
+                    if(match = $(e.target).closest(selector, element)[0]){
+		                // use custom Event rather than the (read-only) native event
+                        event = createProxy(e);
+                        event.currentTarget = match;
+                        return fn.call(match, event);
+                    }
+                };
+                wrapper.originalHandler = fn;
+                add(element, event, wrapper, selector);
+            });
+        },
+
+        undelegate: function(event, selector, fn) {
+            return this.each(function(element) {
+                remove(element, event, fn, selector);
+            });
+        }
+
+        // TODO: on and off
+    });
+
+    ['focusin', 'focusout', 'load', 'resize', 'scroll', 'unload', 'click', 'dblclick', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'change', 'select', 'keydown', 'keypress', 'keyup', 'error'].forEach(function(event) {
+        $.fn[event] = function(callback){ return this.bind(event, callback); };
     });
 })(Easy);

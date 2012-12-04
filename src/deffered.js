@@ -1,5 +1,14 @@
 (function($){
-    var origSlice = Array.prototype.slice;
+    var origSlice = Array.prototype.slice,
+        inherit = function() {
+            function F(){}
+
+            return function(o){
+                F.prototype = o;
+                return new F();
+            };
+        }();
+
     $.extend($, {
         Deffered: function(initFunc){
             var resolved = false,
@@ -39,7 +48,7 @@
                         return this;
                     }
                 },
-                deffered = $.inherit(promise);
+                deffered = inherit(promise);
             deffered.resolveWith = function(context){
                 var args = origSlice.call(arguments, 1);
                 if(!resolved && !rejected){

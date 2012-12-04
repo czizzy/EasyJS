@@ -671,15 +671,6 @@
                 return origToString.call(value) === '[object Array]';
             },
 
-            inherit: function() {
-                function F(){}
-
-                return function(o){
-                    F.prototype = o;
-                    return new F();
-                };
-            }(),
-
             default: function(target, src) {
                 for(var key in src){
                     if(!(key in target)) target[key] = src[key];
